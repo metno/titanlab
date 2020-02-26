@@ -35,20 +35,47 @@ boom <- function( str=NA, code=NA) {
   quit( status= 1)
 }
 
+#+ the end 
+rip <- function( str=NA, code=NA, t0=NA) {
+  cat( "the End : ")
+  if ( !is.na(code) ) {
+    if ( code == 1 ) cat( "normal exit : ")
+  }
+  if ( !is.na(t0)) {
+    t1 <- Sys.time()
+    cat( paste( "total time=", round(t1-t0,1), attr(t1-t0,"unit")))
+  }
+  if ( !is.na(str)) cat( str)
+  cat("\n")
+  quit( status= 0 )
+}
+
+
 #==============================================================================
 #  MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN*MAIN
 #==============================================================================
-t0 <- Sys.time() # ladies and gentlemen, start your engines
+t0 <- Sys.time() # game on
 #
 #-----------------------------------------------------------------------------
 # path to the titan functions is stored in the enviroment var TITANR_FUN
-titan_fun_path <- Sys.getenv( "TITANR_FUN")
-# path to the titan main modules is stored in the enviroment var TITANR_MOD
-titan_mod_path <- Sys.getenv( "TITANR_MOD")
+titan_fun_path <- Sys.getenv( "TITANR_PATH")
+## path to the titan main modules is stored in the enviroment var TITANR_MOD
+#titan_mod_path <- Sys.getenv( "TITANR_MOD")
 #
 #-----------------------------------------------------------------------------
 # load functions
-fun_list <- c( "oi_var_gridpoint_by_gridpoint.r",
+fun_list <- c( "argparser.r",
+               "read_data_to_check.r",
+               "metadata_check.r",
+               "spatconv.r",
+               "read_dem.r",
+               "read_laf.r",
+               "ccrrt.r",
+               "rr_windcorr.r",
+               "read_fg.r",
+               "read_fge.r",
+               "check_z_against_dem.r",
+               "oi_var_gridpoint_by_gridpoint.r",
                "netcdf_util.r",  
                "statistics_util.r",
                "wolff_correction.r",
@@ -57,7 +84,7 @@ fun_list <- c( "oi_var_gridpoint_by_gridpoint.r",
                "sct_util.r",
                "debug_util.r")
 for (fun in fun_list) {
-  if ( !file.exists(file.path( titan_fun_path, "main_constants.r")))
+  if ( !file.exists(file.path( titan_fun_path, fun)))
     boom( file.path( titan_fun_path, fun), code=1)
   source( file.path( titan_fun_path, fun))
 }
@@ -65,26 +92,29 @@ rm( fun_list, fun)
 #
 #-----------------------------------------------------------------------------
 # check all main modules exists
-mod_list <- c( "main_constants.r", "main_argparser.r", "main_checkargs.r",
-               "main_read_data_to_check.r", "main_metadata_check.r",
-               "main_spatconv.r", "main_read_dem.r", "main_read_laf.r"
-               "main_ccrrt.r", "main_rr_windcorr.r",
-               "main_read_fg.r", "main_read_fge.r",
-               "main_radar_in_output.r" ,
-               "main_output.r" )
-for (mod in mod_list) {
-  if ( !file.exists(file.path( titan_mod_path, mod)))
-    boom( file.path( titan_mod_path, mod), code=1)
-}
-rm( mod_list, mod)               
+#mod_list <- c( "main_read_dem.r", "main_read_laf.r"
+#               "main_ccrrt.r", "main_rr_windcorr.r",
+#               "main_read_fg.r", "main_read_fge.r",
+#               "main_radar_in_output.r" ,
+#               "main_output.r" )
+#for (mod in mod_list) {
+#  if ( !file.exists(file.path( titan_mod_path, mod)))
+#    boom( file.path( titan_mod_path, mod), code=1)
+#}
+#rm( mod_list, mod)               
 #
 #-----------------------------------------------------------------------------
 # define constants
-source( file.path( titan_mod_path, "main_constants.r"))
+#source( file.path( titan_mod_path, "main_constants.r"))
+proj4_input_obsfiles_default    <- "+proj=longlat +datum=WGS84"
+proj4_where_dqc_is_done_default <- "+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06"
+xy.dig.out_default <- 5
+varname.y.out_default <- "lat"
+varname.x.out_default <- "lon"
 #
 #-----------------------------------------------------------------------------
 # read command line arguments and/or configuration file
-source( file.path( titan_mod_path, "main_argparser.r"))
+argv <- argparser()
 #
 #-----------------------------------------------------------------------------
 # Multi-cores run
@@ -95,89 +125,98 @@ if ( !is.na( argv$cores)) {
 }
 #
 #-----------------------------------------------------------------------------
-# CHECKS on input arguments
-source( file.path( titan_mod_path, "main_checkargs.r"))
-if ( argv$verbose) cat( ">> TITAN <<\n")
-if ( argv$debug) 
-  capture.output( print(argv), file=file.path(argv$debug.dir,"argv.txt"))
-#
-#-----------------------------------------------------------------------------
 # read data
-source( file.path( titan_mod_path, "main_read_data_to_check.r"))
+#data <- new.env( parent = emptyenv())
+nfin  <- length( argv$input.files)
+res <- read_data_to_check( argv)
+extent  <- res$extent
+data    <- res$data
+dqcflag <- res$dqcflag
+z       <- res$z
+sctpog  <- res$sctpog
+corep   <- res$corep
+rm(res)
+ndata <- length(data$lat)
 #
 #-----------------------------------------------------------------------------
 # test for no metadata (1st round) 
 #  1st round, check for missing metadata in the original data
 #  2nd round, check for missing metadata after dem.fill 
-dqcflag.bak<-dqcflag # bakup, used in main_read_dem.r (if dem.fill=T)
-source( file.path( titan_mod_path, "main_metadata_check.r"))
+dqcflag.bak <- dqcflag # bakup, used in main_read_dem.r (if dem.fill=T)
+dqcflag <- metadata_check ( argv, data, z, extent, dqcflag)
 #
 #-----------------------------------------------------------------------------
 # coordinate transformation
-source( file.path( titan_mod_path, "main_spatconv.r"))
+res <- spatconv( argv, data, extent)
+x  <- res$x
+y  <- res$y
+xl <- res$xl
+yl <- res$yl
+e  <- res$e
+rm(res)
 #
 #-----------------------------------------------------------------------------
 # Read geographical information (optional) 
 # digital elevation model
-if (argv$dem | argv$dem.fill) 
-  source( file.path( titan_mod_path, "main_read_dem.r"))
-# land area fraction
+if (argv$dem | argv$dem.fill) { 
+  res <- read_dem( argv, data, z, dqcflag)
+  z <- res$z
+  zdem <- res$zdem
+  dqcflag <- res$dqcflag
+  rm(res)
+  rm(dqcflag.bak)
+}
+# land area fraction (%, e.g 10 and NOT 0.1)
 if (argv$laf.sct) {
-  source( file.path( titan_mod_path, "main_read_laf.r"))
+  laf <- read_laf( argv)
 } else { # use a fake laf
   laf <- rep( 1, ndata)
 }
 #
 #-----------------------------------------------------------------------------
 # precipitation (in-situ) and temperature (field) cross-check
-if (argv$ccrrt) source( file.path( titan_mod_path, "main_ccrrt.r"))
+if (argv$ccrrt) {
+  res <- ccrrt( argv, data, z, dqcflag)
+  dqcflag <- res$dqcflag
+  if (argv$rr.wcor) { t2m <- res$t2m } else { t2m <- NULL }
+  rm(res)
+}
 #
 #-----------------------------------------------------------------------------
 # Correction for the wind-undercatch of precipitation 
-if (argv$rr.wcor) source( file.path( titan_mod_path, "main_rr_windcorr.r"))
+if (argv$rr.wcor) 
+ data  <- rr_windcorr( argv, data, z, dqcflag, t2m) 
 #
 #-----------------------------------------------------------------------------
 # Read deterministic first guess (optional)
-if (!is.na(argv$fg.file)) source( file.path( titan_mod_path, "main_read_fg.r"))
+if (!is.na(argv$fg.file)) {
+  res <- read_fg( argv)
+  fg <- res$fg
+  rrad <- res$rrad
+  cool_aux <- res$cool_aux
+  rm(res)
+}
 #
 #-----------------------------------------------------------------------------
 # Read first guess ensemble (optional)
-if (!is.na(argv$fge.file)) source( file.path( titan_mod_path, "main_read_fge.r"))
+if (!is.na(argv$fge.file)) {
+  res <- read_fge( argv)
+  fg.mu <- res$fg.mu
+  fg.sd <- res$fg.sd
+  rm(res)
+}
 #
 #-----------------------------------------------------------------------------
 # test for no metadata (2nd and final) 
-source( file.path( titan_mod_path, "main_metadata_check.r"))
+dqcflag <- metadata_check ( argv, data, z, extent, dqcflag)
 #
 #-----------------------------------------------------------------------------
 # check elevation against dem 
 # NOTE: keep-listed stations canNOT be flagged here
-if (argv$dem) {
-  if (argv$verbose | argv$debug) 
-    print(paste0("check station elevations against digital elevation model (",argv$dem.code,")"))
-  # set doit vector
-  doit<-vector(length=ndata,mode="numeric")
-  doit[]<-NA
-  for (f in 1:nfin) doit[data$prid==argv$prid[f]]<-argv$doit.dem[f]
-  # use only (probably) good observations
-  ix<-which(is.na(dqcflag))
-  if (length(ix)>0) {
-    ixna<-which(!is.na(z) & !is.na(zdem) & is.na(dqcflag))
-    sus<-which( abs(z[ixna]-zdem[ixna])>argv$dz.dem &
-                doit[ixna]==1 )
-    # set dqcflag
-    if (length(sus)>0) dqcflag[ixna[sus]]<-argv$dem.code
-  }  else {
-    print("no valid observations left, no dem check")
-  }
-  if (argv$verbose | argv$debug) {
-    print(paste("#stations with elevations too different from digital elevation model =",
-                length(which(dqcflag==argv$dem.code))))
-    print("+---------------------------------+")
-  }
-  rm(doit)
-}
-if (argv$debug) 
-  save.image(file.path(argv$debug.dir,"dqcres_demcheck.RData")) 
+if (argv$dem) 
+  dqcflag <- check_z_against_dem( argv, data, z, zdem, nfin, dqcflag )
+print(cbind(z,zdem,dqcflag))
+q()
 #
 #-----------------------------------------------------------------------------
 # plausibility test
@@ -1573,7 +1612,7 @@ source( file.path( titan_mod_path, "main_output.r"))
 #
 #-----------------------------------------------------------------------------
 # Normal exit
-t1 <- Sys.time() # stop the main clock 
+t1 <- Sys.time() # game over 
 if ( argv$verbose) 
  cat( paste("normal exit /time", round(t1-t0,1), attr(t1-t0,"unit"), "\n"))
 quit( status = 0 )

@@ -721,17 +721,17 @@ if (!is.na(argv$t2m.file)) {
     proj4t2m_from_nc<-list(var=argv$t2m.proj4_var, att=argv$t2m.proj4_att)
   }
 }
-if (!is.na(argv$wind.file)) {
-  if (argv$proj4wind=="" & argv$wind.proj4_var=="" & argv$wind.proj4_att=="" ) {
-    wind.xy_as_vars<-T
-    proj4wind<-NULL
-    proj4wind_from_nc<-NULL
-  } else {
-    wind.xy_as_vars<-F
-    proj4wind<-argv$proj4wind
-    proj4wind_from_nc<-list(var=argv$wind.proj4_var, att=argv$wind.proj4_att)
-  }
-}
+#if (!is.na(argv$wind.file)) {
+#  if (argv$proj4wind=="" & argv$wind.proj4_var=="" & argv$wind.proj4_att=="" ) {
+#    wind.xy_as_vars<-T
+#    proj4wind<-NULL
+#    proj4wind_from_nc<-NULL
+#  } else {
+#    wind.xy_as_vars<-F
+#    proj4wind<-argv$proj4wind
+#    proj4wind_from_nc<-list(var=argv$wind.proj4_var, att=argv$wind.proj4_att)
+#  }
+#}
 if (!is.na(argv$fg.file)) {
   if (argv$proj4fg=="" & argv$fg.proj4_var=="" & argv$fg.proj4_att=="" ) {
     fg.xy_as_vars<-T

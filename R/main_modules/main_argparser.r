@@ -1,3 +1,4 @@
+argparser <- function() {
 # create parser object
 p <- arg_parser("titan")
 # specify our desired options
@@ -1861,4 +1862,5 @@ if (!is.na(argv$config.file)) {
     print(argv$config.file)
   }
 }
-
+return(argv)
+}
