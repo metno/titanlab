@@ -59,6 +59,7 @@ t0 <- Sys.time() # game on
 #-----------------------------------------------------------------------------
 # path to the titan functions is stored in the enviroment var TITANR_FUN
 titan_fun_path <- Sys.getenv( "TITANR_PATH")
+#titan_fun_path <-"~/projects/titanlab/titanlab/R/functions"
 ## path to the titan main modules is stored in the enviroment var TITANR_MOD
 #titan_mod_path <- Sys.getenv( "TITANR_MOD")
 #
@@ -75,6 +76,7 @@ fun_list <- c( "argparser.r",
                "read_fg.r",
                "read_fge.r",
                "check_z_against_dem.r",
+               "plausibility_test.r",
                "oi_var_gridpoint_by_gridpoint.r",
                "netcdf_util.r",  
                "statistics_util.r",
@@ -215,28 +217,11 @@ dqcflag <- metadata_check ( argv, data, z, extent, dqcflag)
 # NOTE: keep-listed stations canNOT be flagged here
 if (argv$dem) 
   dqcflag <- check_z_against_dem( argv, data, z, zdem, nfin, dqcflag )
-print(cbind(z,zdem,dqcflag))
-q()
 #
 #-----------------------------------------------------------------------------
 # plausibility test
 # NOTE: keep-listed stations could be flagged here
-ix<-which( (is.na(dqcflag) | dqcflag==argv$keep.code) &
-           (data$value<argv$vmin | data$value>argv$vmax))
-if (length(ix)>0) dqcflag[ix]<-argv$p.code
-if (argv$verbose | argv$debug) {
-  print(paste0("plausibility test (",argv$p.code,")"))
-  print(paste("min/max thresholds =",argv$vmin,argv$vmax))
-  print(paste("# <min=",length(which(dqcflag==argv$p.code & 
-                                     data$value<argv$vmin))))
-  print(paste("# >max=",length(which(dqcflag==argv$p.code & 
-                                     data$value>argv$vmax))))
-  print(paste("# suspect observations=",length(which(dqcflag==argv$p.code & 
-                                                     !is.na(dqcflag)))))
-  print("+---------------------------------+")
-}
-if (argv$debug) 
-  save.image(file.path(argv$debug.dir,"dqcres_plausibility.RData")) 
+dqcflag <- plausibility_test(argv,data,dqcflag)
 #
 #-----------------------------------------------------------------------------
 # climatological check 
