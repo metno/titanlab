@@ -1,5 +1,22 @@
 #+ read input data (metadata and observations)
-read_data_to_check <- function( argv)
+read_data_to_check <- function( argv,
+                                nfin)
+#==============================================================================
+# input arguments:
+# argv. list with the input arguments (command line and/or config file)
+# nfin. number of input files
+# 
+# output values:
+# list of variables
+# data. data frame: lat, lon, elev, value, prid
+# dqcflag. numeric vector. data quality control flags
+# z. numeric vector. elevation
+# sctpog. numeric vector. spatial consistency test, probability of gross-error
+# corep. numeric vector. coefficient of representativeness
+# varidx. auxiliary variable used to write output
+# varidx.opt. auxiliary variable used to write output
+# dataopt. auxiliary variable used to write output
+# extent. numeric vector. lonmin, lonmax, latmin, latmax
 #==============================================================================
 {
   first<-T
@@ -227,10 +244,16 @@ read_data_to_check <- function( argv)
     print("+---------------------------------+")
   }
   #
+  if (!exists("varidx.opt")) varidx.opt <- NULL
+  if (!exists("dataopt"))    dataopt    <- NULL
   return( list( data    = data, 
                 dqcflag = dqcflag,
                 z       = z,
                 sctpog  = sctpog,
                 corep   = corep,
-                extent  = c(extent_lonmin,extent_lonmax,extent_latmin,extent_latmax) ) )
+                varidx  = varidx,
+                varidx.opt  = varidx.opt,
+                dataopt = dataopt,
+                extent  = c( extent_lonmin, extent_lonmax, 
+                             extent_latmin, extent_latmax)))
 }

@@ -7,11 +7,7 @@ argparser <- function() {
   p <- arg_parser("titan")
   # specify our desired options
   #.............................................................................. 
-  # REQUIRED input 
-  p <- add_argument(p, "input",
-                    help="input file",
-                    type="character")
-  p <- add_argument(p, "output",
+  p <- add_argument(p, "--output.file",
                     help="output file",
                     type="character",
                     default="output.txt")
@@ -42,10 +38,17 @@ argparser <- function() {
                     default=NULL,
                     short="-tip")
   #.............................................................................. 
+  # titanlib path 
+  p <- add_argument(p, "--titanlib_path",
+                    help="path to the directory where the TITAN code is",
+                    type="character",
+                    default=NULL,
+                    short="-tlp")
+  #.............................................................................. 
   neg.str<-"Negative values can be specified in either one of these two ways: (1) by using the corresponding \"...neg...\" command line argument; (2) negative values start with \"_\" (e.g. _2=-2)"
   # ADDITIONAL input files / providers
   p <- add_argument(p, "--input.files",
-                    help="additional input files (provider2 provider3 ...)",
+                    help="input files (provider 1 provider2 provider3 ...)",
                     type="character",
                     default=NULL,
                     nargs=Inf,
@@ -491,6 +494,10 @@ argparser <- function() {
                     default=0)
   #.............................................................................. 
   # Buddy-check
+  p <- add_argument(p, "--buddy",
+                    help="do the buddy check",
+                    flag=T,
+                    short="-Be")
   p <- add_argument(p, "--dr.buddy",
                     help="perform each test within a (2*dr)-by-(2*dr) square-box around each observation [m] (default is 3000m). This is a numeric vector with the same dimension of the vector specifying the thresholds",
                     type="numeric",
@@ -557,6 +564,9 @@ argparser <- function() {
                     short="-nI")
   #.............................................................................. 
   # spatial consistency test
+  p <- add_argument(p, "--sct",
+                    help="do the sct",
+                    flag=T)
   p <- add_argument(p, "--grid.sct",
                     help="nrow ncol (i.e. number_of_rows number_of_columns). SCT is performed independently over several boxes. The regular nrow-by-ncol grid is used to define those rectangular boxes where the SCT is performed.",
                     type="integer",
@@ -568,20 +578,49 @@ argparser <- function() {
                     type="integer",
                     default=1,
                     short="-iS")
-  p <- add_argument(p, "--n.sct",
-                    help="minimum number of stations in a box to run SCT",
-                    type="integer",default=50,short="-nS")
+  p <- add_argument(p, "--background_elab_type.sct",
+                    help="background elaboration type (\"vertical_profile\", \"mean_outer_circle\", \"external\")",
+                    type="character",
+                    default="vertical_profile")
+  p <- add_argument(p, "--inner_radius.sct",
+                    help="radius (m) of the inner circle",
+                    type="numeric",
+                    default=10000)
+  p <- add_argument(p, "--outer_radius.sct",
+                    help="radius (m) of the outer circle",
+                    type="numeric",
+                    default=100000)
+  p <- add_argument(p, "--pmin.sct",
+                    help="minimum number of neighbouring observations (within the outer circle) required to perform SCT",
+                    type="integer",
+                    default=5)
+  p <- add_argument(p, "--pmin_Frei_vert_prof.sct",
+                    help="minimum number of neighbouring observations (within the outer circle) required to compute the non-linear vertical profile as in the paper by Frei (2014)",
+                    type="integer",
+                    default=30)
+  p <- add_argument(p, "--pmax.sct",
+                    help="maximum number of neighbouring observations (within the outer circle) used in the SCT",
+                    type="integer",
+                    default=50)
   p <- add_argument(p, "--dz.sct",
                     help="minimum range of elevation in a box to run SCT [m]",
                     type="numeric",
                     default=30,
                     short="-zS")
   p <- add_argument(p, "--DhorMin.sct",
-                    help=paste("OI, minimum allowed value for the horizontal de-correlation",
-                    "lenght (of the background error correlation) [m]"),
+                    help=paste("OI, minimum allowed value for the horizontal de-correlation lenght (of the background error correlation) [m]"),
                     type="numeric",
                     default=10000,
                     short="-hS")
+  p <- add_argument(p, "--DhorMax.sct",
+                    help=paste("OI, maximum allowed value for the horizontal de-correlation lenght (of the background error correlation) [m]"),
+                    type="numeric",
+                    default=100000,
+                    short="-hS")
+  p <- add_argument(p, "--DhorKth.sct",
+                    help=paste("OI, horizontal de-correlation lenght (of the background error correlation) is computed adaptively based on the distance to the closest observations, as specified by this value"),
+                    type="numeric",
+                    default=3)
   p <- add_argument(p, "--Dver.sct",
                     help="OI, vertical de-correlation lenght  (of the background error correlation) [m]",
                     type="numeric",
@@ -611,6 +650,11 @@ argparser <- function() {
                     default=NA,
                     nargs=Inf,
                     short="-tnS")
+  p <- add_argument(p, "--thrsod.sct",
+                    help="SCT Spatial Outlier Detection (SOD) threshold. thrsod.sct is a vector of positive values (not NAs). If thrsod.sct has the same length of the number of input files, then a provider dependent threshold will be used in the SCT. Otherwise, the value of thrsod.sct[1] will be used for all providers and any other thrsod.sct[2:n] value will be ignored ",
+                    type="numeric",
+                    default=NA,
+                    nargs=Inf)
   p <- add_argument(p, "--laf.sct",
                     help="use land area fraction in the OI correlation function (0-100%)",
                     flag=T,
@@ -620,6 +664,9 @@ argparser <- function() {
                     type="numeric",
                     default=0.5,
                     short="-lmS")
+
+
+
   p <- add_argument(p, "--fast.sct",
                     help="faster spatial consistency test. Allow for flagging more than one observation simulataneously. Station by station mode, some more shortcuts are taken to speed up the elaboration",
                     flag=T,
@@ -638,10 +685,6 @@ argparser <- function() {
                     help="half-width of the square box used to select the nearest observations",
                     type="numeric",
                     default=100000)
-  p <- add_argument(p, "--pmax.sct",
-                    help="maximum number of observations to use in the neighbourhood of each observations",
-                    type="integer",
-                    default=50)
   p <- add_argument(p, "--succ_corr.sct",
                     help="successive correction step (yes/no)",
                     flag=T)
@@ -1867,17 +1910,14 @@ argparser <- function() {
     }
   }
   # CHECKS on input arguments
-  if (!file.exists(argv$input)) 
-    boom(paste("ERROR: input file not found",argv$input))
   # more than one input file
   if (any(!is.na(argv$input.files))) {
     for (j in 1:length(argv$input.files)) {
       if (!file.exists(argv$input.files[j])) 
         boom(paste("ERROR: input file not found",argv$input.files[j]))
     }
-    argv$input.files<-c(argv$input,argv$input.files)
   } else {
-    argv$input.files<-argv$input
+    boom(paste("ERROR: specify at least one input file"))
   }
   nfin<-length(argv$input.files)
   # check consistency between number of files and provider ids
@@ -2444,6 +2484,18 @@ argparser <- function() {
   if (length(argv$thr.sct)!=nfin) 
     argv$thr.sct<-rep(argv$thr.sct[1],length=nfin)
   #
+  # thrsod.sct
+  if ( any( is.na( argv$thrsod.sct))) {
+    print("++ WARNING")
+    print("thrsod.sct should be specified and it must not contain NAs")
+    print(" because either it has not been specified or it has been set to NA, ")
+    print(" then TITAN will use the default value of 4")
+    argv$thrsod.sct    <- vector()
+    argv$thrsod.sct[1] <- 4
+  }
+  if ( length( argv$thrsod.sct) != nfin) 
+    argv$thrsod.sct <- rep( argv$thrsod.sct[1], length=nfin)
+  #
   # eps2
   if (any(is.na(argv$eps2.sct))) {
     print("++ WARNING")
@@ -2545,23 +2597,23 @@ argparser <- function() {
     dyn.load(file.path(argv$titan_path,"sct","sct_smart_boxes.so"))
   }
   # buddy checks
-  if (!any(!is.na(argv$dr.buddy))) argv$dr.buddy<-3000
-  if (length(argv$thr.buddy)!=length(argv$dr.buddy))
-    argv$thr.buddy<-rep(0.05,length=argv$dr.buddy)
-  if (any(is.na(argv$n.buddy)))
-    argv$n.buddy<-rep(5,length=argv$dr.buddy)
-  if (any(is.na(argv$dz.buddy)))
-    argv$dz.buddy<-rep(10000,length=argv$dr.buddy)
+  if ( !any( !is.na( argv$dr.buddy))) argv$dr.buddy <- 3000
+  if ( length( argv$thr.buddy) != length(argv$dr.buddy))
+    argv$thr.buddy <- rep( 0.05, length= length( argv$dr.buddy))
+  if ( any( is.na( argv$n.buddy)))
+    argv$n.buddy <- rep( 5, length= length( argv$dr.buddy))
+  if ( any( is.na( argv$dz.buddy)))
+    argv$dz.buddy <- rep( 10000, length=length(argv$dr.buddy))
   # buddy_eve checks
   if (argv$buddy_eve) {
     if (length(argv$dr.buddy_eve)!=length(argv$thr_eve.buddy_eve))
-      argv$dr.buddy_eve<-rep(3000,length=argv$thr_eve.buddy_eve)
+      argv$dr.buddy_eve<-rep(3000,length=length(argv$thr_eve.buddy_eve))
     if (length(argv$thr.buddy_eve)!=length(argv$thr_eve.buddy_eve))
-      argv$thr.buddy_eve<-rep(0.05,length=argv$thr_eve.buddy_eve)
+      argv$thr.buddy_eve<-rep(0.05,length=length(argv$thr_eve.buddy_eve))
     if (any(is.na(argv$n.buddy_eve)))
-      argv$n.buddy_eve<-rep(5,length=argv$thr_eve.buddy_eve)
+      argv$n.buddy_eve<-rep(5,length=length(argv$thr_eve.buddy_eve))
     if (any(is.na(argv$dz.buddy_eve)))
-      argv$dz.buddy_eve<-rep(10000,length=argv$thr_eve.buddy_eve)
+      argv$dz.buddy_eve<-rep(10000,length=length(argv$thr_eve.buddy_eve))
   }
   # wind-induced undercatch of precipitation, check consistency of inputs
   if (argv$rr.wcor & argv$variable!="RR") 

@@ -1,5 +1,6 @@
-#+
+#+ Read first-guess field (deterministic case)
 read_fg <- function( argv) {
+#=============================================================================
   fg.offset<-strings_to_numbers(strings=argv$fg.offset,default=0,
                                         neg=argv$fg.negoffset)
   fg.cfact<-strings_to_numbers(strings=argv$fg.cfact,default=0,
@@ -49,8 +50,6 @@ read_fg <- function( argv) {
                             nc.dqc_mode=nc.dqc_mode) 
   rfg<-res$raster
   fg<-res$values # this has the dimension of the observation vector
-  rrad<-NA
-  if (argv$radarout) rrad<-rfg
   rm(res)
   fg<-fg.offset+ fg * fg.cfact
   if (argv$cool & argv$usefg.cool) {
@@ -102,12 +101,17 @@ read_fg <- function( argv) {
     fg<-fg+argv$gamma.standard*(z-zfgdem)
     rm(zfgdem,res)
   }
-  if (argv$debug) save.image(file.path(argv$debug.dir,"input_data_fg.RData"))
-  if (argv$verbose) print("+---------------------------------+")
-  return( list( fg=fg,
-                rrad=rrad,
-                cool_aux=list( yo_cool_aux=yo_cool_aux,
-                               xobs_cool_aux=xobs_cool_aux,
-                               yobs_cool_aux=yobs_cool_aux,
-                               pridobs_cool_aux=pridobs_cool_aux)))
+  print("+---------------------------------+")
+  if ( !exists("rfgdem")) rfgdem <- NULL
+  if (!exists("xobs_cool_aux")) xobs_cool_aux<-integer(0)
+  if (!exists("yobs_cool_aux")) yobs_cool_aux<-integer(0)
+  if (!exists("pridobs_cool_aux")) pridobs_cool_aux<-integer(0)
+  if (!exists("yo_cool_aux")) yo_cool_aux<-integer(0)
+  return( list( fg       = fg,
+                rfg      = rfg,
+                rfgdem   = rfgdem,
+                cool_aux = list( yo_cool_aux      = yo_cool_aux,
+                                 xobs_cool_aux    = xobs_cool_aux,
+                                 yobs_cool_aux    = yobs_cool_aux,
+                                 pridobs_cool_aux = pridobs_cool_aux)))
 }

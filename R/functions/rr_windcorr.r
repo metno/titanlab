@@ -1,19 +1,25 @@
 #+ Correction for the wind-undercatch of precipitation
 rr_windcorr <- function( argv, data, z, dqcflag, t2m=NULL) {
 #==============================================================================
-  if (argv$verbose) print("Correction for the wind-undercatch of precipitation")
+  cat( "Correction for the wind-undercatch of precipitation\n")
   if (!is.null(t2m)) {
     #t2m
-    t2m.offset<-strings_to_numbers(strings=argv$t2m.offset,default=0,
-                                   neg=argv$t2m.negoffset)
-    t2m.cfact<-strings_to_numbers(strings=argv$t2m.cfact,default=0,
-                                  neg=argv$t2m.negcfact)
-    t2m.demoffset<-strings_to_numbers(strings=argv$t2m.demoffset,default=0,
-                                      neg=argv$t2m.demnegoffset)
-    t2m.demcfact<-strings_to_numbers(strings=argv$t2m.demcfact,default=0,
-                                     neg=argv$t2m.demnegcfact)
+    t2m.offset   <- strings_to_numbers( strings = argv$t2m.offset,
+                                        default = 0,
+                                        neg     = argv$t2m.negoffset)
+    t2m.cfact    <- strings_to_numbers( strings = argv$t2m.cfact,
+                                        default = 0,
+                                        neg     = argv$t2m.negcfact)
+    t2m.demoffset <- strings_to_numbers( strings = argv$t2m.demoffset,
+                                         default = 0,
+                                         neg     = argv$t2m.demnegoffset)
+    t2m.demcfact  <- strings_to_numbers( strings = argv$t2m.demcfact,
+                                         default = 0,
+                                         neg     = argv$t2m.demnegcfact)
     if (!is.na(argv$t2m.file)) {
-      if (argv$proj4t2m=="" & argv$t2m.proj4_var=="" & argv$t2m.proj4_att=="" ) {
+      if ( argv$proj4t2m == "" & 
+           argv$t2m.proj4_var == "" & 
+           argv$t2m.proj4_att == "" ) {
         t2m.xy_as_vars<-T
         proj4t2m<-NULL
         proj4t2m_from_nc<-NULL
@@ -24,7 +30,7 @@ rr_windcorr <- function( argv, data, z, dqcflag, t2m=NULL) {
       }
     }
     # read temperature from gridded field
-    debug.file<-ifelse(argv$debug, file.path(argv$debug.dir,"input_data_rrwcor_t2m.RData"), NA)
+    debug.file <- ifelse( argv$debug, file.path(argv$debug.dir,"input_data_rrwcor_t2m.RData"), NA)
     res<-get_data_from_ncfile(nc.file=argv$t2m.file,
                               nc.varname=argv$t2m.varname,
                               nc.t=argv$t2m.t,
@@ -178,12 +184,12 @@ rr_windcorr <- function( argv, data, z, dqcflag, t2m=NULL) {
   if (argv$debug) save.image(file.path(argv$debug.dir,"rrcor_before.RData"))
   # precipitation data adjustment
   data$rawvalue<-data$value
-  res<-wolff_correction(par=argv$rr.wcor.par,
-                        t2m=t2m,
-                        ws10m=ws10m,
-                        rr=data$rawvalue)
-  data$value<-res$rr.cor
-  data$vsigma<-res$sigma
+  res <- wolff_correction( par   = argv$rr.wcor.par,
+                           t2m   = t2m,
+                           ws10m = ws10m,
+                           rr    = data$rawvalue)
+  data$value  <- res$rr.cor
+  data$vsigma <- res$sigma
   rm(res)
   if (argv$verbose) {
     print(paste0("# observations (ok-so-far) = ",

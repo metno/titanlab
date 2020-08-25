@@ -1,9 +1,11 @@
 #+ check against first-guess (ensemble)
-fg_ens <- function(argv,data,dqcflag,fge.mu,fge.sd){
+fg_ens <- function( argv,
+                    data,
+                    dqcflag,
+                    fge.mu,
+                    fge.sd){
 #==============================================================================
-  if (argv$verbose | argv$debug) {
-    print(paste0("first-guess check ens (",argv$fge.code,")"))
-  }
+  cat( paste0("first-guess check ens (",argv$fge.code,")\n"))
   # set doit vector
   doit<-vector(length=ndata,mode="numeric"); doit[]<-NA
   thrvec<-vector(length=ndata,mode="numeric"); thrvec[]<-NA
@@ -33,19 +35,19 @@ fg_ens <- function(argv,data,dqcflag,fge.mu,fge.sd){
     rm(aux)
   }
   # use only (probably) good observations
-  ix<-which(is.na(dqcflag) & doit!=0)
+  ix <- which( is.na(dqcflag) & doit!=0)
   if (length(ix)>0) {
-    dev<-data$value-fge.mu
-    devperc<-dev/fge.mu
-    devout<-dev/fge.sd
-    flag_sus<-rep(F,ndata)
-    flag_to_check<-is.na(dqcflag) & doit==1 &
-                   !is.na(data$value) &
-                   !is.nan(data$value) &
-                   is.finite(data$value) &
-                   !is.na(fge.mu) & !is.nan(fge.mu) & is.finite(fge.mu)
+    dev      <- data$value - fge.mu
+    devperc  <- dev / fge.mu
+    devout   <- dev / fge.sd
+    flag_sus <- rep( F, ndata)
+    flag_to_check <- is.na(dqcflag) & doit==1 &
+                     !is.na(data$value) &
+                     !is.nan(data$value) &
+                     is.finite(data$value) &
+                     !is.na(fge.mu) & !is.nan(fge.mu) & is.finite(fge.mu)
     if (any(!is.na(thrvec)))
-      flag_sus<-flag_sus |
+      flag_sus <- flag_sus |
        (!is.na(thrvec) & flag_to_check & abs(dev)>thrvec)
     if (any(!is.na(thrposvec)))
       flag_sus<-flag_sus |
@@ -79,22 +81,14 @@ fg_ens <- function(argv,data,dqcflag,fge.mu,fge.sd){
        (!is.na(thrnegoutvec) & flag_to_check &
         dev<0 & abs(devout)>thrnegoutvec)
     ix_sus<-which(flag_sus)
-    rm(flag_sus,flag_to_check,dev,devperc,devout)
-    rm(doit,thrvec,thrposvec,thrnegvec,perc_minvalvec,thrpercvec)
-    rm(thrpospercvec,thrnegpercvec,throutvec,thrposoutvec,thrnegoutvec)
     # set dqcflag
     if (length(ix_sus)>0) dqcflag[ix_sus]<-argv$fge.code
-    rm(ix_sus)
   }  else {
-    print("no valid observations left, no first-guess check")
+    cat( "no valid observations left, no first-guess check\n")
   }
-  if (argv$verbose | argv$debug) {
-    print(paste("# observations that fail the first-guess check (ens)=",
-                length(which(dqcflag==argv$fge.code))))
-    print("+---------------------------------+")
-  }
-  if (argv$debug)
-    save.image(file.path(argv$debug.dir,"dqcres_fge.RData"))
+  cat( paste( "# observations that fail the first-guess check (ens)=",
+              length(which(dqcflag==argv$fge.code)),"\n"))
+  print("+---------------------------------+\n")
   #
   return(dqcflag)
 }

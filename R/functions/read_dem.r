@@ -1,17 +1,24 @@
 #+ read digital elevation model
-read_dem <- function( argv, data, z, dqcflag) { 
-
-  if (argv$proj4dem=="" & argv$dem.proj4_var=="" & argv$dem.proj4_att=="" ) {
-    dem.xy_as_vars<-T
-    proj4dem<-NULL
-    proj4dem_from_nc<-NULL
+read_dem <- function( argv,
+                      data,
+                      z,
+                      dqcflag,
+                      dqcflag.bak) { 
+#============================================================================
+  if ( argv$proj4dem == "" & 
+       argv$dem.proj4_var == "" & 
+       argv$dem.proj4_att == "" ) {
+    dem.xy_as_vars   <- T
+    proj4dem         <- NULL
+    proj4dem_from_nc <- NULL
   } else {
-    dem.xy_as_vars<-F
-    proj4dem<-argv$proj4dem
-    proj4dem_from_nc<-list(var=argv$dem.proj4_var, att=argv$dem.proj4_att)
+    dem.xy_as_vars   <- F
+    proj4dem         <- argv$proj4dem
+    proj4dem_from_nc <- list( var = argv$dem.proj4_var, 
+                              att = argv$dem.proj4_att)
   }
-
-  if (argv$verbose) print("read digital elevation model")
+  #
+  cat("read digital elevation model\n")
   debug.file<-ifelse(argv$debug, file.path(argv$debug.dir,"demnc.RData"), NA)
   zdem<-get_data_from_ncfile(nc.file=argv$dem.file,
                              nc.varname=argv$dem.varname,
@@ -43,7 +50,6 @@ read_dem <- function( argv, data, z, dqcflag) {
                (is.na(z) | is.nan(z) | z<argv$zmin | z>argv$zmax) )
     z[iz]<-zdem[iz]
     dqcflag[iz]<-dqcflag.bak[iz]
-#    rm(dqcflag.bak)
     if (argv$verbose) {
       print(paste("# stations with elevation derived from DEM=",length(iz)))
       print("+---------------------------------+")

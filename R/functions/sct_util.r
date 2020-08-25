@@ -74,7 +74,8 @@ vertprof2opt<-function(par,vert_coord,obs) {
 
 
 #+ SCT - spatial consistency test
-sct<-function(ixynp,
+#sct<-function(ixynp,
+sct1111<-function(ixynp,
               nmin=50,
               dzmin=30,
               Dhmin=10000,
