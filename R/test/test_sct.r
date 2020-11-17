@@ -44,8 +44,9 @@ pGE = 0.3 # probability of gross error 0.3 = 30%
 lats = runif(P, min = 55, max = 70)
 lons = runif(P, min = 5, max = 30)
 elevs = runif(P, min = 0, max = 2500)
-#values <- 30 - 0.0065 * elevs
-values <- (103-1.333*lats) - 0.0065 * elevs
+# simple vertical profile
+values <- 30 - 0.0065 * elevs
+#values <- (103-1.333*lats) - 0.0065 * elevs
 values[sample(1:P,ceiling(P*pGE))]<-runif(ceiling(P*pGE), min = -50, max = 50)
 obs_to_check = rep(1,P)
 background_values = 0
@@ -58,7 +59,7 @@ value_min = -50
 value_max = 50
 sig2o_min = 0.1
 sig2o_max = 4
-debug = T
+debug = F
 num_min = 3
 num_max = 50
 inner_radius = 30000

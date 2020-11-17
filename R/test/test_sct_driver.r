@@ -1,13 +1,11 @@
 #!/usr/bin/env Rscript
-
 #---------------------------------------------------------------
-
-# titanlib_path <- "/home/cristianl/projects/titanlib/build/extras"
+getOption("defaultPackages")
+titanlib_path<-"/home/cristianl/projects/titanlib/build/extras"
 # titanlib_path <- "/home/lineb/projects/titanlib/titanlib/build/extras"
 
-# dyn.load(file.path(titanlib_path, paste("SWIG/R/titanlib", .Platform$dynlib.ext, sep = "")))
-# source(  file.path(titanlib_path, "SWIG/R/titanlib.R"))
-
+dyn.load( file.path(titanlib_path, paste("SWIG/R/titanlib", .Platform$dynlib.ext, sep = "")))
+source(  file.path(titanlib_path, "SWIG/R/titanlib.R"))
 # ---------------------------------------------------------------
 
 suppressPackageStartupMessages(library("argparser"))
