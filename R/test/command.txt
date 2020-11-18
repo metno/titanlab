@@ -1,4 +1,6 @@
 
 ./test_sct_driver.R --date1 "2020-05-01" --date2 "2020-05-02" --time_step 1 --time_unit "days" --input_file_path "/home/lineb/projects/titanlab/observations_testbed/" --input_varname TAM --output_file_path "/home/lineb/projects/titanlab/observations_testbed/" --config_file /home/lineb/projects/titanlab/titanlab/R/test/config_titanlab.cfg
 
+./test_sct_driver.R --date1 "2020-05-01" --date2 "2020-05-02" --time_step 1 --time_unit "days" --input_file_path "/home/lineb/projects/titanlab/observations_testbed/" --input_varname TAM --output_file_path "/home/lineb/projects/titanlab/observations_testbed/" --config_file /home/lineb/projects/titanlab/titanlab/R/test/config_titanlab2.cfg
+
 
