@@ -1,0 +1,2 @@
+/home/cristianl/projects/sweet/sweet.r --config_file /home/cristianl/projects/sweet/test/test_rr.ini --nsamples 10 --ffout /home/cristianl/data/sweet/synsct_rr/synrr_l050_n00010.nc
+/home/cristianl/projects/sweet/synsct_rr.r --ffin_fields /home/cristianl/data/sweet/synsct_rr/synrr_l015_n00010.nc --ffin_obs /home/cristianl/data/sweet/aux/obs_RR_20200724.txt --ffout  /home/cristianl/data/sweet/synsct_rr/test.dat --config_file test/test_synsct_rr.ini
