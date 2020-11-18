@@ -2,7 +2,7 @@
 #
 # constants
 ffsweet=/home/cristianl/data/sweet/synsct_tg/syntg_n41.dat
-eva=/home/cristianl/projects/sweet/evasct_tg.r
+eva=/home/cristianl/projects/titanlab/sweet/evasct_tg.r
 # sct param
 synsct_tg_nens=010
 #

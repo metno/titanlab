@@ -2,8 +2,8 @@
 #
 # constants
 ffsweet=/home/cristianl/data/sweet/synsct_tg/syntg_n41.dat
-ffconf=/home/cristianl/projects/sweet/etc/synsct_tg.ini
-sct=/home/cristianl/projects/sweet/synsct_tg.r
+ffconf=/home/cristianl/projects/titanlab/sweet/etc/synsct_tg.ini
+sct=/home/cristianl/projects/titanlab/sweet/synsct_tg.r
 # sct param
 synsct_tg_nens=010
 #
@@ -18,7 +18,6 @@ for a_vertprof_ix in 01 10 21 30 41; do
           echo "$sct --ffin_sim $ffsweet --ffout $ffout --config_file $ffconf --tpos_score $tpos_score --tneg_score $tneg_score --t_sod $t_sod --pGE $pGE --a_vertprof_ix $a_vertprof_ix --thinobs_perc $thinobs_perc --synsct_tg_nens $synsct_tg_nens"
           $sct --ffin_sim $ffsweet --ffout $ffout --config_file $ffconf --tpos_score $tpos_score --tneg_score $tneg_score --t_sod $t_sod --pGE $pGE --a_vertprof_ix $a_vertprof_ix --thinobs_perc $thinobs_perc --synsct_tg_nens $synsct_tg_nens
           echo "written file "$ffout
-exit 0
         done
       done
     done

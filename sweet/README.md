@@ -34,18 +34,23 @@ We will study the sensitivity of the system to variations on three main points:
 Generate 41 different situations with the same vertical profile outside Folldal but different profiles in Folldal (a=-20,...0,...20).
 
 ```
-$>/home/cristianl/projects/sweet/sweet.r --ffin_obs /home/cristianl/projects/sweet/etc/obs_TAM_20200724.txt --config_file /home/cristianl/projects/sweet/etc/sweet_tg.ini --ffout /home/cristianl/data/sweet/synsct_tg/syntg_n41.dat
+$>export SWEET_PATH=/home/cristianl/projects/titanlab/sweet
+$>/home/cristianl/projects/titanlab/sweet/sweet.r --ffin_obs /home/cristianl/projects/titanlab/sweet/etc/obs_TAM_20200724.txt --config_file /home/cristianl/projects/titanlab/sweet/etc/sweet_tg.ini --ffout /home/cristianl/data/sweet/synsct_tg/syntg_n41.dat
 ```
 
 Run the SCT over the configurations, with different settings:
 
 ```
-$>/home/cristianl/projects/sweet/driver_synsct_tg.sh
+$>/home/cristianl/projects/titanlab/sweet/driver_synsct_tg.sh
 ```
 
 For each configuration, run evaluation program:
 
 ```
-$>/home/cristianl/projects/sweet/driver_evasct_tg.sh
+$>/home/cristianl/projects/titanlab/sweet/driver_evasct_tg.sh
 ```
 
+Instructions for daily precipitation
+====================================
+
+Work in progress
