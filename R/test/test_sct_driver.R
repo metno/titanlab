@@ -3,10 +3,10 @@
 #---------------------------------------------------------------
 
 # titanlib_path <- "/home/cristianl/projects/titanlib/build/extras"
-# titanlib_path <- "/home/lineb/projects/titanlib/titanlib/build/extras"
+ titanlib_path <- "/home/lineb/projects/titanlib/titanlib/build/extras"
 
-# dyn.load(file.path(titanlib_path, paste("SWIG/R/titanlib", .Platform$dynlib.ext, sep = "")))
-# source(  file.path(titanlib_path, "SWIG/R/titanlib.R"))
+ dyn.load(file.path(titanlib_path, paste("SWIG/R/titanlib", .Platform$dynlib.ext, sep = "")))
+ source(  file.path(titanlib_path, "SWIG/R/titanlib.R"))
 
 # ---------------------------------------------------------------
 
@@ -76,15 +76,29 @@ for (t in 1:n_tseq) {
   debug <- argv$debug
   
 # Run SCT
-#  res <- sct(lats, lons, elevs, values, obs_to_check, background_values, background_elab_type, num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, value_min, value_max, sig2o_min, sig2o_max, eps2, tpos_score, tneg_score, t_sod, debug)
+  res <- sct(lats, lons, elevs, values, obs_to_check, background_values, background_elab_type, num_min, num_max, inner_radius, outer_radius, num_iterations, num_min_prof, min_elev_diff, min_horizontal_scale, max_horizontal_scale, kth_closest_obs_horizontal_scale, vertical_scale, value_min, value_max, sig2o_min, sig2o_max, eps2, tpos_score, tneg_score, t_sod, debug)
   
-#  print(head(res[[1]]))
+  print(head(res[[1]]))
 
-  flag_test <- rep(10,N) 
-  obs_out <- cbind(obs, flag_test)
+  flag   <- res[[1]]
+  score  <- res[[2]]
+  rep    <- res[[3]]
+  sod    <- res[[4]]
+  num_inner <- res[[5]]
+  horizontal_scale <- res[[6]]
+  an_inc <- res[[7]]
+  an_res <- res[[8]]
+  cv_res <- res[[9]]
+  innov  <- res[[10]]
+  idi    <- res[[11]]
+  idiv   <- res[[12]]
+  sig2o  <- res[[13]]
+
+  obs_out <- cbind(obs, flag, score, rep, sod, num_inner, horizontal_scale, an_inc, an_res, cv_res, innov, idi, idiv, sig2o)
   print(head(obs_out))
 
-  write.table(obs_out, file = paste0(argv$output_file_path, "obs_out_", argv$input_varname, "_", format(tseq[t], "%Y%m%d"), "_", argv$config_string,".txt"), sep = ";", row.names = FALSE) # add output path and link to argv
+  write.table(obs_out, file = paste0(argv$output_file_path, "obs_out_", argv$input_varname, "_", format(tseq[t], "%Y%m%d"), "_", argv$config_string,".txt")
+                     , sep = ";", row.names = FALSE)
   print(paste0("Writing to file: ", paste0(argv$output_file_path, "obs_out_", argv$input_varname, "_", format(tseq[t],"%Y%m%d"), "_", argv$config_string, ".txt")))
   print("-----------------------------------------------------------------------------------------")
 
