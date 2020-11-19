@@ -120,25 +120,25 @@ if ( argv$sweet_t) {
                           open=(i==1), close=(i==argv$nsamples), open_par=open_par)
     br <- seq(range(val)[1],range(val)[2],length=15)
     col <- rev(rainbow(14))
-    png(file=paste0("map_",formatC(i,width=2,flag="0"),".png"),width=800,height=800)
-    plot( extent(argv$extent))
-    plot( extent(argv$extent_small),add=T)
-    for ( j in 1:length(col)) {
-      ix <- which( val>=br[j] & val<br[j+1])
-      points( x_points[ix], y_points[ix], bg=col[j], pch=21)
-    }
-    dev.off()
-    aux <- tvertprof_Frei( z  = z_points,
-                           t0 = argv$t_t0_mean,
-                           gamma = argv$t_gamma_mean,
-                           a   = a[i],
-                           h0  = t_h0_mean,
-                           h1i = t_h1i_mean)
-    png(file=paste0("zgraph_",formatC(i,width=2,flag="0"),".png"),width=800,height=800)
-    plot( val, z_points,xlim=range(c(val,aux),na.rm=T), main=paste("a=",round(a[i])))
-    points( aux, z_points, pch=21, bg="gold", cex=.5)
-    points( val[isin], z_points[isin], pch=21, bg="maroon", cex=1.5)
-    dev.off()
+#    png(file=paste0("map_",formatC(i,width=2,flag="0"),".png"),width=800,height=800)
+#    plot( extent(argv$extent))
+#    plot( extent(argv$extent_small),add=T)
+#    for ( j in 1:length(col)) {
+#      ix <- which( val>=br[j] & val<br[j+1])
+#      points( x_points[ix], y_points[ix], bg=col[j], pch=21)
+#    }
+#    dev.off()
+#    aux <- tvertprof_Frei( z  = z_points,
+#                           t0 = argv$t_t0_mean,
+#                           gamma = argv$t_gamma_mean,
+#                           a   = a[i],
+#                           h0  = t_h0_mean,
+#                           h1i = t_h1i_mean)
+#    png(file=paste0("zgraph_",formatC(i,width=2,flag="0"),".png"),width=800,height=800)
+#    plot( val, z_points,xlim=range(c(val,aux),na.rm=T), main=paste("a=",round(a[i])))
+#    points( aux, z_points, pch=21, bg="gold", cex=.5)
+#    points( val[isin], z_points[isin], pch=21, bg="maroon", cex=1.5)
+#    dev.off()
     i <- i + 1
   }
 } else if ( argv$sweet_rr) {
