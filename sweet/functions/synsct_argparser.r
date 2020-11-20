@@ -126,6 +126,10 @@ p<- add_argument(p, "--synsct_tg_nens",
                  help="number of ensembles",
                  type="numeric",
                  default=10)
+p<- add_argument(p, "--synsct_rr_nens",
+                 help="number of ensembles",
+                 type="numeric",
+                 default=10)
 #..............................................................................
 p<- add_argument(p, "--t_score_eva",
                  help="list of thresholds for evaluation",
@@ -137,6 +141,35 @@ p<- add_argument(p, "--t_sod_eva",
                  type="character",
                  nargs=Inf,
                  default=NA)
+#..............................................................................
+p <- add_argument(p, "--gridded_extent",
+                  help="xmin xmax ymin ymax",
+                  type="numeric",
+                  nargs=Inf,
+                  default=c(-621692.2, -246692.2, -499072, 928))
+p <- add_argument(p, "--extent",
+                  help="xmin xmax ymin ymax",
+                  type="numeric",
+                  nargs=Inf,
+                  default=c(61.9, 62.3, 9.8, 10.2))
+p <- add_argument(p, "--extent_small",
+                  help="xmin xmax ymin ymax",
+                  type="numeric",
+                  nargs=Inf,
+                  default=c(61.9, 62.3, 9.8, 10.2))
+p <- add_argument(p, "--gridded_res",
+                  help="dx dy",
+                  type="numeric",
+                  nargs=Inf,
+                  default=c(12500,12500))
+p <- add_argument(p, "--gridded_crs",
+                  help="coordinate reference system",
+                  type="character",
+                  default="+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06")
+p <- add_argument(p, "--rr_lscale",
+                  help="precipitation simulations. Length scale (same units as the spatial coordinates)",
+                  type="numeric",
+                  default=50)
 #..............................................................................
 p <- add_argument(p, "--verbose",
                   help="verbose mode",

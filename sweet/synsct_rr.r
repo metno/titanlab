@@ -84,8 +84,37 @@ print(r)
 obsnet <- read_obsNet( file=argv$ffin_obs, crs_in=proj4.wgs84, crs_out=proj4,
                        exclude_prid = 100, 
                        extent_out=extent( xmin, xmax, ymin, ymax))
+obsnet_or <- obsnet
 print("-- obsNet --")
 print(obsnet$n)
+#------------------------------------------------------------------------------
+# thinning of observations
+flag <- F
+if ( !is.na( argv$thinobs_perc)) {
+  ix <- 1:obsnet$n
+  if ( !is.na( argv$thinobs_prid)) {
+    ix <- which( obsnet$prid == argv$thinobs_prid)
+  }
+  if (argv$thinobs_perc>0) {
+    nrem <- ceiling( length( ix) * argv$thinobs_perc / 100)
+    ixrem <- sample(ix, nrem)
+    ixkeep <- (1:obsnet$n)[-ixrem]
+    flag <- T
+  } else {
+    ixkeep <- 1:obsnet$n
+  }
+  obsnet$n <- length(ixkeep)
+  obsnet$lat <- obsnet$lat[ixkeep]
+  obsnet$lon <- obsnet$lon[ixkeep]
+  obsnet$x <- obsnet$x[ixkeep]
+  obsnet$y <- obsnet$y[ixkeep]
+  obsnet$z <- obsnet$z[ixkeep]
+  obsnet$prid <- obsnet$prid[ixkeep]
+  print("-- obsNet --")
+  print(obsnet$n)
+} else {
+  ixkeep <- 1:obsnet$n
+}
 #
 #------------------------------------------------------------------------------
 # SCT - Loop over fields
@@ -105,17 +134,47 @@ for (e in 1:nens) {
   dat<-t(data[,,e])
   r[]<-dat
   values <- extract( r, cbind( obsnet$x, obsnet$y))
-  if ( !is.na( argv$pGE))
-    values[sample(1:obsnet$n, ceiling(obsnet$n*argv$pGE))] <- runif( ceiling(obsnet$n*argv$pGE), min = argv$value_min, max = argv$value_max)
+  if ( !is.na( argv$pGE)) {
+    nbad <- ceiling( obsnet$n * argv$pGE / 100)
+    true_flag <- rep( 0, obsnet$n)
+    ixbad <- sample(1:obsnet$n, nbad)
+    true_flag[ixbad] <- rep(1,nbad)
+    values[ixbad] <- runif( nbad, min = argv$value_min, max = argv$value_max)
+  } else {
+    true_flag <- rep(0,obsnet$n)
+  }
   if ( !is.na( argv$boxcox_lambda)) 
     values <- boxcox( values, argv$boxcox_lambda)
   # 
   t00<-Sys.time()
   res <- sct( obsnet$lat, obsnet$lon, elevs, values, obs_to_check, background_values, argv$background_elab_type, argv$num_min, argv$num_max, argv$inner_radius, argv$outer_radius, argv$num_iterations, argv$num_min_prof, argv$min_elev_diff, min_horizontal_scale, max_horizontal_scale, argv$kth_closest_obs_horizontal_scale, argv$vertical_scale, argv$value_min, argv$value_max, argv$sig2o_min, argv$sig2o_max, eps2, tpos_score, tneg_score, t_sod, debug)
   print(Sys.time()-t00)
+  nres <- length(res)
+  res[[nres+1]] <- true_flag
+  if ( flag) {
+    res_bak <- res
+    for (i in 1:length(res)) {
+      res[[i]] <- vector(mode="numeric", length=obsnet_or$n)
+      res[[i]][] <- argv$undef
+      res[[i]][ixkeep] <- res_bak[[i]]
+    }
+    true_flag <- res[[nres+1]]
+  } 
   #
-  if (!exists("conn")) conn<-NA
-  conn <- write_sctRes( conn, argv$ffout, res, e, open=(e==1), close=(e==nens))
+  a <- length( which( true_flag==1 & res[[1]]==1))
+  c <- length( which( true_flag==1 & res[[1]]==0))
+  b <- length( which( true_flag==0 & res[[1]]==1))
+  d <- length( which( true_flag==0 & res[[1]]==0))
+  rand <- (a+c) * (a+b) / (a+b+c+d)
+  ets <- (a-rand) / (a+b+c-rand)
+  acc <- (a+d)/(a+b+c+d)
+  pod <- a/(a+c)
+  pofa <- b/(b+d)
+  print( paste("a(bad) b c d", a,"(",length(which( true_flag==1)),")", b, c, d, a+b+c+d))
+  print( paste("acc pod pofa ets", round(acc,2), round(pod,2), round(pofa,2), round(ets,2)))
+  #
+  if (!exists("conn_out")) conn_out<-NA
+  conn_out <- write_sctRes( conn_out, argv$ffout, res, e, open=(e==1), close=(e==nens))
   print( paste("------ written",e,"/",nens,"--------------------------------"))
   png(file=paste0("fig_",formatC(e,flag=0,width=3),".png"),width=800,height=800)
   par(mar=c(1,1,1,1))
@@ -124,7 +183,7 @@ for (e in 1:nens) {
   ix <- which(res[[1]]==1)
   points(obsnet$x[ix],obsnet$y[ix],pch=21,bg="yellow",cex=3)
   box()
-  dev.off()
+  aux <- dev.off()
 }
 #
 #------------------------------------------------------------------------------

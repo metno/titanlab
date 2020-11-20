@@ -147,8 +147,6 @@ for (e in 1:argv$synsct_tg_nens) {
   c <- length( which( true_flag==1 & res[[1]]==0))
   b <- length( which( true_flag==0 & res[[1]]==1))
   d <- length( which( true_flag==0 & res[[1]]==0))
-#  print(res[[7]][which( true_flag==1 & res[[1]]==0)])
-#  print(res[[7]][which( true_flag==1 & res[[1]]==1)])
   r <- (a+c) * (a+b) / (a+b+c+d)
   ets <- (a-r) / (a+b+c-r)
   acc <- (a+d)/(a+b+c+d)

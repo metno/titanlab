@@ -44,7 +44,7 @@ Run the SCT over the configurations, with different settings:
 $>/home/cristianl/projects/titanlab/sweet/driver_synsct_tg.sh
 ```
 
-For each configuration, run evaluation program:
+Run the evaluation program, which creates one image for each configuration:
 
 ```
 $>/home/cristianl/projects/titanlab/sweet/driver_evasct_tg.sh
@@ -53,4 +53,21 @@ $>/home/cristianl/projects/titanlab/sweet/driver_evasct_tg.sh
 Instructions for daily precipitation
 ====================================
 
-Work in progress
+Generate random Gaussian fields with a prescribed length scale of 50 km and 10 ensemble members:
+
+```
+$>export SWEET_PATH=/home/cristianl/projects/titanlab/sweet
+$>./driver_sweet_rr.sh 50000 10
+```
+
+Run the SCT over the configurations, with different settings (length(m) nsamples thin-sel Box-Cox(0.3 or 0.5)):
+
+```
+$>/home/cristianl/projects/titanlab/sweet/driver_synsct_rr.sh 50000 10 00 0.3
+```
+
+For each configuration, run evaluation program:
+
+```
+$>/home/cristianl/projects/titanlab/sweet/driver_evasct_rr.sh
+```
