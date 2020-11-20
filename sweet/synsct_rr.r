@@ -176,14 +176,14 @@ for (e in 1:nens) {
   if (!exists("conn_out")) conn_out<-NA
   conn_out <- write_sctRes( conn_out, argv$ffout, res, e, open=(e==1), close=(e==nens))
   print( paste("------ written",e,"/",nens,"--------------------------------"))
-  png(file=paste0("fig_",formatC(e,flag=0,width=3),".png"),width=800,height=800)
-  par(mar=c(1,1,1,1))
-  image(r,breaks=c(0,0.1,1,2,4,8,16,32,64,128,1000),col=c("beige",rev(rainbow(9))),xlab="",ylab="",main="",axes=F)
-  points(obsnet$x,obsnet$y)
-  ix <- which(res[[1]]==1)
-  points(obsnet$x[ix],obsnet$y[ix],pch=21,bg="yellow",cex=3)
-  box()
-  aux <- dev.off()
+#  png(file=paste0("fig_",formatC(e,flag=0,width=3),".png"),width=800,height=800)
+#  par(mar=c(1,1,1,1))
+#  image(r,breaks=c(0,0.1,1,2,4,8,16,32,64,128,1000),col=c("beige",rev(rainbow(9))),xlab="",ylab="",main="",axes=F)
+#  points(obsnet$x,obsnet$y)
+#  ix <- which(res[[1]]==1)
+#  points(obsnet$x[ix],obsnet$y[ix],pch=21,bg="yellow",cex=3)
+#  box()
+#  aux <- dev.off()
 }
 #
 #------------------------------------------------------------------------------

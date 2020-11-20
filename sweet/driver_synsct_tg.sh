@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -N sweet 
 #$ -S /bin/bash
-#$ -l h_rt=24:00:00
+#$ -l h_rt=36:00:00
 #$ -pe shmem-1 1
 #$ -q research-el7.q
 #$ -l h_vmem=2500M
@@ -28,21 +28,18 @@ synsct_tg_nens=500
 #
 a_vertprof_ix=$1
 thinobs_perc=$2
-#for a_vertprof_ix in 01 10 21 30 41; do
-#  for thinobs_perc in 00 50; do
-    for pGE in 00 20 40; do
-      for t in 02 04 09 16 25; do
-        tpos_score=$t; tneg_score=$t
-        for t_sod in 02 04 09 16 25; do
-          ffout=/lustre/storeB/users/cristianl/sweet/synsct_tg/res/synsct_tg_res_a$a_vertprof_ix\_th$tpos_score\_sod$t_sod\_pGE$pGE\_sel$thinobs_perc\_n$synsct_tg_nens.dat
-          echo "$sct --ffin_sim $ffsweet --ffout $ffout --config_file $ffconf --tpos_score $tpos_score --tneg_score $tneg_score --t_sod $t_sod --pGE $pGE --a_vertprof_ix $a_vertprof_ix --thinobs_perc $thinobs_perc --synsct_tg_nens $synsct_tg_nens"
-          $sct --ffin_sim $ffsweet --ffout $ffout --config_file $ffconf --tpos_score $tpos_score --tneg_score $tneg_score --t_sod $t_sod --pGE $pGE --a_vertprof_ix $a_vertprof_ix --thinobs_perc $thinobs_perc --synsct_tg_nens $synsct_tg_nens
-          echo "written file "$ffout
-        done
-      done
+#for pGE in 00 20 40; do
+for pGE in 40; do
+  for t in 02 04 09 16 25; do
+    tpos_score=$t; tneg_score=$t
+    for t_sod in 02 04 09 16 25; do
+      ffout=/lustre/storeB/users/cristianl/sweet/synsct_tg/res/synsct_tg_res_a$a_vertprof_ix\_th$tpos_score\_sod$t_sod\_pGE$pGE\_sel$thinobs_perc\_n$synsct_tg_nens.dat
+      echo "$sct --ffin_sim $ffsweet --ffout $ffout --config_file $ffconf --tpos_score $tpos_score --tneg_score $tneg_score --t_sod $t_sod --pGE $pGE --a_vertprof_ix $a_vertprof_ix --thinobs_perc $thinobs_perc --synsct_tg_nens $synsct_tg_nens"
+      $sct --ffin_sim $ffsweet --ffout $ffout --config_file $ffconf --tpos_score $tpos_score --tneg_score $tneg_score --t_sod $t_sod --pGE $pGE --a_vertprof_ix $a_vertprof_ix --thinobs_perc $thinobs_perc --synsct_tg_nens $synsct_tg_nens
+      echo "written file "$ffout
     done
-#  done
-#done
+  done
+done
 #
 exit 0
 
