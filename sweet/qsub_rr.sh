@@ -1,0 +1,1 @@
+n=500; bxcx=0.5; for l in 10000 25000 50000 75000 100000 150000 200000 400000; do for sel in 00 50; do qsub -o /lustre/storeB/users/cristianl/sweet/synsct_rr/log/synsct_rr_res_l$l\_sel$sel\_b$bxcx\_n$n\.log -e /lustre/storeB/users/cristianl/sweet/synsct_rr/log/synsct_rr_res_l$l\_sel$sel\_b$bxcx\_n$n\.err driver_synsct_rr.sh $l $n $sel $bxcx; done; done
