@@ -20,6 +20,8 @@ read_sctRes <- function( conn=NA, file, ens=NA, open=T, close=T) {
 #  13 idiv
 #  14 sig2o
 #  15 true dqc flag
+#  16 obs transf
+#  17 obs
 
   if (  open | is.na(conn)) conn <- file(file, "rb")
   flag <- F

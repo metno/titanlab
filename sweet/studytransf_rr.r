@@ -131,6 +131,8 @@ for (th in argv$t_score_eva) {
     if ( !file.exists( ffin)) next
     i <- i+1
     res[[i]] <- read_sctRes( file=ffin)
+save.image("tmp.rdata")
+q()
     vth[i] <- as.numeric(th)
     vsod[i] <- as.numeric(sod)
     #

@@ -31,7 +31,7 @@ p<- add_argument(p, "--background_elab_type",
 p<- add_argument(p, "--undef",
                  help="undefined value",
                  type="numeric",
-                 default=-9999)
+                 default=-999)
 p<- add_argument(p, "--boxcox_lambda",
                  help="Box-Cox transformation parameter",
                  type="numeric",

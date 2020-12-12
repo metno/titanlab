@@ -23,7 +23,7 @@ suppressPackageStartupMessages( library( "rgdal"))
 suppressPackageStartupMessages( library( "ncdf4"))
 suppressPackageStartupMessages( library( "dotnc"))
 #options(warn = 2, scipen = 999)
-options( scipen = 999999999)
+options( scipen = 999999999, warn=2)
 #
 # Load functions
 titanlib_path <- "/home/cristianl/projects/titanlib/build/extras"
@@ -144,27 +144,94 @@ for (e in 1:nens) {
     true_flag <- rep(0,obsnet$n)
   }
   if (any(values<0)) values[values<0]<-0
+  values <- round(values,1)
   if ( !is.na( argv$boxcox_lambda)) {
     values_or <- values 
     values <- boxcox( values, argv$boxcox_lambda)
   }
-  #
-#lambda <- 0.3
-#alpha<-0.1
-##
-#x<-0:300
-#xup<-x+alpha*x
-#xdw<-x-alpha*x
-#y<-( ( boxcox( xup, lambda=lambda) - boxcox(   x, lambda=lambda) + 
-#       boxcox(   x, lambda=lambda) - boxcox( xdw, lambda=lambda)) / 2)**2
-#lm <- lm( y[100:300] ~ x[100:300])
-#plot(x,y)
-#lines(x,x*lm$coefficients[2]+lm$coefficients[1])
-#lm$coefficients
-
+  values_minok <- boxcox( pmin( pmax(values_or-1,0), pmax(values_or-0.1*values_or,0)), argv$boxcox_lambda) 
+  values_maxok <- boxcox( pmax( (values_or+1), (values_or+0.1*values_or)), argv$boxcox_lambda)
+  values_min <- boxcox( 0, argv$boxcox_lambda)
+  values_max <- boxcox( 300, argv$boxcox_lambda)
+  values_low <- boxcox( pmin( pmax(values_or-10,0), pmax(values_or-0.5*values_or,0)), argv$boxcox_lambda)
+  values_up  <- boxcox( pmax( (values_or+10), (values_or+0.5*values_or)), argv$boxcox_lambda)
   # 
   t00<-Sys.time()
-  res <- sct( obsnet$lat, obsnet$lon, elevs, values, obs_to_check, background_values, argv$background_elab_type, argv$num_min, argv$num_max, argv$inner_radius, argv$outer_radius, argv$num_iterations, argv$num_min_prof, argv$min_elev_diff, min_horizontal_scale, max_horizontal_scale, argv$kth_closest_obs_horizontal_scale, argv$vertical_scale, argv$value_min, argv$value_max, rep(argv$sig2o_min,length(obsnet$lat)), rep(argv$sig2o_max,length(obsnet$lat)), eps2, tpos_score, tneg_score, t_sod, debug)
+  xgrid_spint <- obsnet$x
+  ygrid_spint <- obsnet$y
+  VecX <- obsnet$x
+  VecY <- obsnet$y
+  dh <- 5000
+  thr <- 1
+  source("functions/sct.r")
+  yo <- values
+  flag<-yo; flag[]<--1
+  z <- flag; z[]<-NA; ya <- z; yav <- z; sigma <- z; sigma_mu <- z
+  for (j in 1:10) {
+    print(paste("iteration j =",j))
+    stop <- T
+    nbad <- 0
+    for (i in 1:length(VecX)) {
+#      res <- sct(i, 50, plot=(j==1 & i<=50))
+#      res <- sct(i, 50, plot=((i%%10)==0))
+      res <- sct(i, 50)
+      if (length(res$ix)>0) {
+#        print(res)
+        flag[res$ix]<-res$flag
+        z[res$ix]<-res$z
+        ya[res$ix]<-res$ya
+        yav[res$ix]<-res$yav
+        sigma[res$ix]<-res$sigma
+        sigma_mu[res$ix]<-res$sigma_mu
+        if ( any( res$flag==1)) {
+          nbad <- nbad + length(which(res$flag==1))
+          stop <- F
+        }
+      }
+    }
+    print( paste("    # bad observations =", nbad, round(nbad/length(flag),4)))
+    print( paste("TOT # bad observations =", length(which(flag==1)), round(length(which(flag==1))/length(flag),4)))
+    if (stop) break
+  }
+  #
+  for (f in c( -1, 1)) {
+    print( paste("check",f))
+    ix1 <- which( flag == f)
+    for (i in ix1) {
+      j <- 9999
+      flag[i] <- -1
+#      res <- sct( i, 50, plot=T, use0=T, justi=T)
+      res <- sct( i, 50, plot=F, use0=T, justi=T)
+      if (length(res$ix)>0) {
+        aux <- flag
+        aux[res$ix]<-res$flag
+        if ( aux[i]==0) {
+          flag[i] <- 0
+        } else {
+          flag[i] <- 1
+        }
+      }
+    }
+  }
+  print( paste("TOT # bad observations =", length(which(flag==1)), round(length(which(flag==1))/length(flag),4)))
+  ixa <- which( true_flag==1 & flag==1)
+  ixc <- which( true_flag==1 & flag==0)
+  ixb <- which( true_flag==0 & flag==1)
+  ixd <- which( true_flag==0 & flag==0)
+  a <- length( which( true_flag==1 & flag==1))
+  c <- length( which( true_flag==1 & flag==0))
+  b <- length( which( true_flag==0 & flag==1))
+  d <- length( which( true_flag==0 & flag==0))
+  rand <- (a+c) * (a+b) / (a+b+c+d)
+  ets <- (a-rand) / (a+b+c-rand)
+  acc <- (a+d)/(a+b+c+d)
+  pod <- a/(a+c)
+  pofa <- b/(b+d)
+  print( paste("a(bad) b c d", a,"(",length(which( true_flag==1)),")", b, c, d, a+b+c+d))
+  print( paste("acc pod pofa ets", round(acc,2), round(pod,2), round(pofa,2), round(ets,2)))
+save.image("tmp.rdata")
+q()
+#  res <- sct( obsnet$lat, obsnet$lon, elevs, values, obs_to_check, background_values, argv$background_elab_type, argv$num_min, argv$num_max, argv$inner_radius, argv$outer_radius, argv$num_iterations, argv$num_min_prof, argv$min_elev_diff, min_horizontal_scale, max_horizontal_scale, argv$kth_closest_obs_horizontal_scale, argv$vertical_scale, argv$value_min, argv$value_max, rep(argv$sig2o_min,length(obsnet$lat)), rep(argv$sig2o_max,length(obsnet$lat)), eps2, tpos_score, tneg_score, t_sod, debug)
   print(Sys.time()-t00)
   nres <- length(res)
   res[[nres+1]] <- true_flag
@@ -180,17 +247,6 @@ for (e in 1:nens) {
     true_flag <- res[[nres+1]]
   } 
   #
-  a <- length( which( true_flag==1 & res[[1]]==1))
-  c <- length( which( true_flag==1 & res[[1]]==0))
-  b <- length( which( true_flag==0 & res[[1]]==1))
-  d <- length( which( true_flag==0 & res[[1]]==0))
-  rand <- (a+c) * (a+b) / (a+b+c+d)
-  ets <- (a-rand) / (a+b+c-rand)
-  acc <- (a+d)/(a+b+c+d)
-  pod <- a/(a+c)
-  pofa <- b/(b+d)
-  print( paste("a(bad) b c d", a,"(",length(which( true_flag==1)),")", b, c, d, a+b+c+d))
-  print( paste("acc pod pofa ets", round(acc,2), round(pod,2), round(pofa,2), round(ets,2)))
   #
   if (!exists("conn_out")) conn_out<-NA
   conn_out <- write_sctRes( conn_out, argv$ffout, res, e, open=(e==1), close=(e==nens))

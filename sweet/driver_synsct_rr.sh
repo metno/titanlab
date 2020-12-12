@@ -51,10 +51,10 @@ elif [ "$bxcx" == "0.5" ]; then
 fi
 ffin_fields=/home/cristianl/data/sweet/rr/synrr_l$l\_n$n.nc
 #
-for pGE in 00 20 40; do
-  for t in 02 04 09 16 25; do
+for pGE in 00 05 10 40; do
+  for t in 02 09 25; do
     tpos_score=$t; tneg_score=$t
-    for t_sod in 02 04 09 16 25; do
+    for t_sod in 00; do
       ffout=/home/cristianl/data/sweet/synsct_rr/res/synsct_rr_res_l$l\_b$b\_th$tpos_score\_sod$t_sod\_pGE$pGE\_sel$thinobs_perc\_n$n.dat
       echo "$sct --ffin_fields $ffin_fields --ffin_obs $ffin_obs --ffout $ffout --config_file $ffconf --tpos_score $tpos_score --tneg_score $tneg_score --t_sod $t_sod --pGE $pGE --thinobs_perc $thinobs_perc --boxcox_lambda $bxcx"
       $sct --ffin_fields $ffin_fields --ffin_obs $ffin_obs --ffout $ffout --config_file $ffconf --tpos_score $tpos_score --tneg_score $tneg_score --t_sod $t_sod --pGE $pGE --thinobs_perc $thinobs_perc --boxcox_lambda $bxcx

@@ -20,6 +20,8 @@ write_sctRes <- function( conn=NA, file, res, ens, open=T, close=T) {
 #  13 idiv
 #  14 sig2o
 #  15 true dqc flag
+#  16 obs transf
+#  17 obs
 #
 #----------------------------------------------------------------------------
   if (  open | is.na(conn)) conn <- file(file, "wb")

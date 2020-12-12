@@ -159,8 +159,8 @@ score_fun<-function(i=NA,
       c <- length( which( no_val %in% yes_ref))
       d <- length( which( no_val %in% no_ref))
       if ( lab == "ets") {
-        a_random <- (a+c) * (a+b) / (a+b+c+d)
-        score    <- (a-a_random) / (a+c+b-a_random)
+        a_random <- as.numeric(a+c) * as.numeric(a+b) / as.numeric(a+b+c+d)
+        score    <- as.numeric(a-a_random) / as.numeric(a+c+b-a_random)
       } else if ( lab == "hss") {
        rand <- ( (a+c) * (a+b) + (d+c) * (d+b)) / (a+b+c+d)
        score <- ( a + d - rand) / ( a+b+c+d - rand)
