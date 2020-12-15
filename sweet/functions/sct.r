@@ -1,11 +1,14 @@
 #+ spatial consistency test 
 sct <- function( i,
-                 pmax,
-                 r_inn = 25000,
-                 r_out = 50000,
-                 use0  = F,
-                 justi = F,
-                 plot  = F ) {
+                 pmax       = 50,
+                 r_inn      = 25000,
+                 r_out      = 50000,
+                 kth_dist   = 3,
+                 dhlim      = NA, #c(min,max)
+                 tpos_score = 3,
+                 tneg_score = 3,
+                 justi      = F,
+                 plot       = F ) {
 #------------------------------------------------------------------------------
 # Check for the occurrence of gross measurement errors by comparing observed
 # values against their neighbours.
@@ -20,11 +23,7 @@ sct <- function( i,
 # global variables: xgrid_spint, ygrid_spint, yb_spint, xb_spint
 #                   VecX, VecY, dh, dh2,
   dist <- sqrt( (xgrid_spint[i]-VecX)**2 + (ygrid_spint[i]-VecY)**2)
-  if ( use0) {
-    i01  <- which( dist < r_out & flag == 0)
-  } else {
-    i01  <- which( dist < r_out & flag != 1)
-  }
+  i01  <- which( dist < r_out & flag != 1)
   if ( justi & !(i %in% i01)) i01 <- c(i,i01)
   if ( length( i01) > pmax) 
     i01 <- i01[order( dist[i01], decreasing=F)[1:pmax]] # ix from global to outer obs
@@ -33,9 +32,8 @@ sct <- function( i,
   if ( length( i12 <- which( dist_out < r_inn)) < 2)  # ix from outer to inner obs
     return(list(ix=integer(0)))
   if ( justi) {
-    if (length( i13 <- which( i01 == i & flag_out != 0)) < 1) { 
+    if (length( i13 <- which( i01 == i)) < 1) 
       return(list(ix=integer(0))) # ix from outer to inner obs to check
-    }
   } else {
     if (length( i13 <- which( dist_out < r_inn & flag_out != 0)) < 2) 
       return(list(ix=integer(0))) # ix from outer to inner obs to check
@@ -48,11 +46,15 @@ sct <- function( i,
   yb <- median( yo[i01])
   if ( any( yb < values_minok[i03] | yb > values_maxok[i03])) {
     # OI
-    dist_inn <- dist[i02]
-    dh2  <- dh**2
+    disth2 <- outer( VecY[i01], VecY[i01], FUN="-")**2 + 
+              outer( VecX[i01], VecX[i01], FUN="-")**2 
+    dh2 <- mean( apply( cbind( 1:nrow(disth2), disth2),
+                  MARGIN = 1,
+                  FUN=function(x){sort(x[-c(1,(x[1]+1))],decreasing=F)[kth_dist]}))
+    if ( !is.na( dhlim[1]) & !is.na( dhlim[2])) 
+      dh2 < min( c( max( c( dh2, (dhlim[1]**2))), (dhlim[2]**2)))
     inno <- yo[i01] - rep( yb, length(i01))
-    S <- exp( -0.5*( outer( VecY[i01], VecY[i01], FUN="-")**2. + 
-                     outer( VecX[i01], VecX[i01], FUN="-")**2) / dh2)
+    S <- exp( -0.5*( disth2 / dh2))
     SRinv <- chol2inv( chol( ( S + diag( x=eps2[i01], length(i01)))))
     SRinv_di <- crossprod( SRinv, inno) 
     G <- exp(-0.5*( outer( VecY[i02], VecY[i01], FUN="-")**2. + 
@@ -75,11 +77,27 @@ sct <- function( i,
       return(list(ix=i03,flag=flag_inn,z=z[i23],ya=ya[i23],yav=yav[i23],sigma=sigma,sigma_mu=sigma_mu))
     }
     mu <- median(chi[iz])
-    sigma <- as.numeric(diff(quantile(chi[iz],probs=c(0.25,0.75))))
-    sigma_mu <- sigma / sqrt(length(iz)) 
-    z <- (chi-mu)/(sigma+sigma_mu)
-    ix_bad <- i23[which.max(z[i23])]
-    if ( z[ix_bad] > thr & 
+    sigma <- as.numeric( diff( quantile( chi[iz], probs=c( 0.25, 0.75))))
+    sigma_mu <- sigma / sqrt( length( iz)) 
+    if ( ( sigma + sigma_mu) == 0) {
+      sigma <- as.numeric( diff( quantile( 
+       c( sqrt( eps2[i02[iz]] / (1+eps2[i02[iz]])) *  abs(yo[i02[iz]] - values_minok[i02[iz]]), 
+          sqrt( eps2[i02[iz]] / (1+eps2[i02[iz]])) *  abs(yo[i02[iz]] - values_maxok[i02[iz]])),  
+       probs=c( 0.25, 0.75))))
+       sigma_mu <- sigma / sqrt( length( iz)) 
+       if ( ( sigma + sigma_mu) == 0) {
+         print("sct: both sigmas are 0")
+         return(list(ix=integer(0)))
+       }
+    }
+    z <- ( chi - mu) / ( sigma + sigma_mu)
+    if (justi) {
+      ix_bad <- which( i02 == i)
+    } else {
+      ix_bad <- i23[which.max(z[i23])]
+    }
+    if ( ( ( z[ix_bad] > tpos_score & yav[ix_bad] >= yo[i02[ix_bad]]) |
+           ( z[ix_bad] > tneg_score & yav[ix_bad] <  yo[i02[ix_bad]]) ) & 
          ( yav[ix_bad] < values_minok[i02[ix_bad]] | 
            yav[ix_bad] > values_maxok[i02[ix_bad]])) {
       flag_inn[which.max(z[i23])] <- 1
@@ -88,12 +106,19 @@ sct <- function( i,
 #      print("ix or yo yb ya yav chi z flag")
 #      print(cbind(i03, values_or[i03],round(yo[i03],2),round(rep(yb,length(i03)),2),round(ya[i23],2),round(yav[i23],2),
 #                  round(chi[i23],2), round(z[i23],2),flag_inn))
-    } else if (!any(z>thr)) {
+    } else if ( !any( ( yav[ix_bad] < values_minok[i02[ix_bad]] | 
+                        yav[ix_bad] > values_maxok[i02[ix_bad]])) |
+                !any( ( ( z > tpos_score & yav >= yo[i02]) |
+                        ( z > tneg_score & yav <  yo[i02]))) ) {
       flag_inn[] <- 0
     }
      
 #    if (i%%100==0) print(i)
-    if ( plot & any(flag_inn==1)) {
+    if ( plot) {
+      if (any(flag_inn==1)) str <- "f1_"
+      if (any(flag_inn==0)) str <- "f0_"
+      if (any(flag_inn==-1)) str <- "fm1_"
+      print( paste(length( flag_inn),str))
       print("--------------------")
       print(paste("chi mean stdev stdev_mu",round(mu,3),round(sigma,3),round(sigma_mu,3)))
       print("or yo yb ya yav chi z")
@@ -102,8 +127,29 @@ sct <- function( i,
       xymx<-max(c(abs(yo[i02]-ya),abs(yo[i02]-yav)))
       xall<-seq(-100,100,by=0.001)
       ij <- paste0(formatC(j,flag="0",width=4),"_",formatC(i,flag="0",width=4))
-      fffig<-paste0("png/fig_",ij,".png")
-      png(file=fffig,width=800,height=800)
+      #
+#      if (length(chi)==50) {
+      ffchi<-paste0("png/chi_",str,ij,".png")
+      png( file=ffchi, width=800, height=800)
+      par( mar=c( 5, 5, 1, 1))
+      hist( chi, breaks=seq(range(chi)[1],range(chi)[2],length=15), col="gray",
+            main="chi = sqrt( Ares - CVAres)", cex.axis=2,cex.lab=2)
+      abline( v=quantile( chi[iz], probs=c(0.25,0.5,0.75)), lty=2, lwd=3)
+      dev.off()
+      #
+      ffz<-paste0("png/z_",str,ij,".png")
+      png( file=ffz, width=800, height=800)
+      par( mar=c( 5, 5, 1, 1))
+      hist( z, breaks=seq(range(z)[1],range(z)[2],length=15), col="pink",
+            main="z = ( chi - mu) / ( sigma + sigma_u)", cex.axis=2,cex.lab=2 )
+      dev.off()
+#        fffin<-paste0("png/chiz_",str,ij,".png")
+#        system(paste("convert +append",ffchi,ffz,fffin))
+#        system(paste("rm ",ffchi,ffz))
+#      }
+      #
+      fffig<-paste0("png/fig_",str,ij,".png")
+      png( file=fffig, width=800, height=800)
       par(mar=c(5,5,1,1))
       plot(yo[i03]-ya[i23],yo[i03]-yav[i23],xlim=c(-xymx,xymx),ylim=c(-xymx,xymx),col="white",axes=F,xlab="",ylab="")
       for (ii in c(1:25)) 
@@ -124,7 +170,7 @@ sct <- function( i,
       box()
       dev.off()
       #
-      ffmap<-paste0("png/map_",ij,".png")
+      ffmap<-paste0("png/map_",str,ij,".png")
       png(file=ffmap,width=800,height=800)
       par(mar=c(1,1,1,1))
       dat<-t(data[,,1])
@@ -148,10 +194,10 @@ sct <- function( i,
       # inner/outer
       ixm1 <- which( flag[i01] == -1)
       points( obsnet$x[i01[ixm1]], obsnet$y[i01[ixm1]], cex=5,pch=21, bg="white", col="gray")
-      text(obsnet$x[i01[ixm1]], obsnet$y[i01[ixm1]], values_or[i01[ixm1]])
+      if (length(ixm1)>0) text(obsnet$x[i01[ixm1]], obsnet$y[i01[ixm1]], values_or[i01[ixm1]])
       ix0 <- which( flag[i01] == 0)
       points( obsnet$x[i01[ix0]], obsnet$y[i01[ix0]], cex=5,pch=24, bg="white", col="gray")
-      text(obsnet$x[i01[ix0]], obsnet$y[i01[ix0]], values_or[i01[ix0]])
+      if (length(ix0)>0) text(obsnet$x[i01[ix0]], obsnet$y[i01[ix0]], values_or[i01[ix0]])
       # inner
       points( obsnet$x[i02[i23]],obsnet$y[i02[i23]], cex=5, pch=21,  bg="cyan", col="blue")
       text(obsnet$x[i02[i23]], obsnet$y[i02[i23]], values_or[i02[i23]])
@@ -163,9 +209,13 @@ sct <- function( i,
       text(obsnet$x[i], obsnet$y[i], values_or[i], col="maroon")
       box()
       dev.off()
-      fffin<-paste0("png/mapfig_",ij,".png")
-      system(paste("convert +append",ffmap,fffig,fffin))
-      system(paste("rm ",ffmap,fffig))
+      fffin1<-paste0("png/aux1_",str,ij,".png")
+      system(paste("convert +append",ffmap,fffig,fffin1))
+      fffin2<-paste0("png/aux2_",str,ij,".png")
+      system(paste("convert +append",ffchi,ffz,fffin2))
+      fffin<-paste0("png/mapfig_",str,ij,".png")
+      system(paste("convert -append",fffin1,fffin2,fffin))
+      system(paste("rm ",ffmap,fffig,ffchi,ffz,fffin1,fffin2))
     }
   } else {
     flag_inn[]<-0

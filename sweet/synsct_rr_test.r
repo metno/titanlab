@@ -54,20 +54,20 @@ argv <- synsct_argparser()
 #------------------------------------------------------------------------------
 # Read input nc-file
 if ( !file.exists( argv$ffin_fields)) boom(str=argv$ffin_fields, code=1) 
-nc <- nc_open( argv$ffin_fields, readunlim=FALSE )
-v1 <- nc$var[[1]]
+nc   <- nc_open( argv$ffin_fields, readunlim=FALSE )
+v1   <- nc$var[[1]]
 data <- ncvar_get( nc, v1 ) 
-x <- nc$dim[[1]]$vals
-y <- nc$dim[[2]]$vals
+x   <- nc$dim[[1]]$vals
+y   <- nc$dim[[2]]$vals
 ens <- nc$dim[[3]]$vals
 proj4 <- ncatt_get( nc, varid=nc$var[[2]], attname="proj4")$value
 nc_close( nc)
 # dim(data) x,y,ensemble
-nx <- length( x)
-ny <- length( y)
+nx   <- length( x)
+ny   <- length( y)
 nens <- length( ens)
-dx <- abs( x[2] - x[1])
-dy <- abs( y[2] - y[1])
+dx   <- abs( x[2] - x[1])
+dy   <- abs( y[2] - y[1])
 xmin <- min(x) - dx/2
 xmax <- max(x) + dx/2
 ymin <- min(y) - dy/2
@@ -81,7 +81,9 @@ print(r)
 #
 #------------------------------------------------------------------------------
 # Read observational network
-obsnet <- read_obsNet( file=argv$ffin_obs, crs_in=proj4.wgs84, crs_out=proj4,
+obsnet <- read_obsNet( file=argv$ffin_obs, 
+                       crs_in=proj4.wgs84,
+                       crs_out=proj4,
                        exclude_prid = 100, 
                        extent_out=extent( xmin, xmax, ymin, ymax))
 obsnet_or <- obsnet
@@ -130,6 +132,58 @@ t_sod <- rep( argv$t_sod, obsnet$n)
 eps2 <- rep( argv$eps2, obsnet$n)
 min_horizontal_scale <- argv$inner_radius/10
 max_horizontal_scale <- argv$inner_radius
+#
+# plot a priori info
+plot_prior <- F
+if ( plot_prior) {
+  xseq <- seq( 0, 100, by=0.1)
+  xseqt <- boxcox( xseq, argv$boxcox_lambda)
+  ffa <- paste0("png/priorinfoa.png")
+  values_minok <- pmin( pmax(xseq-1,0), pmax(xseq-0.1*xseq,0))
+  values_maxok <- pmax( (xseq+1), (xseq+0.1*xseq))
+  values_low <- pmin( pmax(xseq-10,0), pmax(xseq-0.5*xseq,0))
+  values_up  <- pmax( (xseq+10), (xseq+0.5*xseq))
+  png( ffa, width=800, height=800)
+  par( mar=c(5,5,1,1))
+  plot( xseq, values_up, col="white", axes=F, 
+        main="", xlab="", ylab="",xlim=c(0,100),ylim=c(0,150))
+  polygon( c( xseq, xseq[length(xseq):1]), c( values_low, values_up[length(xseq):1]), 
+           density=20, angle=-60, col="gray")
+  polygon( c( xseq, xseq[length(xseq):1]), c( values_minok, values_maxok[length(xseq):1]), 
+           density=20, angle=60, col="darkgreen")
+  lines( xseq, xseq, lwd=6)
+  axis(1,at=seq(0,1000,by=10),lty=2,col="gray", cex.axis=2)
+  mtext(1,line=3,text="Precipitation (mm)",cex=2)
+  axis(2,at=seq(0,1000,by=10),lty=2,col="gray", cex.axis=2)
+  mtext(2,line=3,text="CV Prec, prior assumption (mm)",cex=2)
+  abline(h=0,v=0,lwd=3)
+  box()
+  devnull <- dev.off()
+  ffb <- paste0("png/priorinfob.png")
+  values_minok <- boxcox( pmin( pmax(xseq-1,0), pmax(xseq-0.1*xseq,0)), argv$boxcox_lambda) 
+  values_maxok <- boxcox( pmax( (xseq+1), (xseq+0.1*xseq)), argv$boxcox_lambda)
+  values_low <- boxcox( pmin( pmax(xseq-10,0), pmax(xseq-0.5*xseq,0)), argv$boxcox_lambda)
+  values_up  <- boxcox( pmax( (xseq+10), (xseq+0.5*xseq)), argv$boxcox_lambda)
+  png( ffb, width=800, height=800)
+  par( mar=c(5,5,1,1))
+  plot( xseq, xseqt, col="white", axes=F, main="", xlab="", ylab="",xlim=c(0,100),ylim=c(-3.5,12))
+  polygon( c( xseq, xseq[length(xseq):1]), c( values_low, values_up[length(xseq):1]), 
+           density=20, angle=-60, col="gray")
+  polygon( c( xseq, xseq[length(xseq):1]), c( values_minok, values_maxok[length(xseq):1]), 
+           density=20, angle=60, col="darkgreen")
+  lines( xseq, xseqt, lwd=6)
+  axis(1,at=seq(0,1000,by=10),lty=2,col="gray", cex.axis=2)
+  mtext(1,line=3,text="Precipitation (mm)",cex=2)
+  axis(2,at=seq(-100,1000,by=1),lty=2,col="gray", cex.axis=2)
+  mtext(2,line=3,text="Transformed variable",cex=2)
+  abline(v=0,lwd=3)
+  box()
+  devnull <- dev.off()
+  ffc <- paste0("png/priorinfo.png")
+  system(paste("convert +append",ffa,ffb,ffc))
+  system(paste("rm ",ffa,ffb))
+}
+#
 for (e in 1:nens) {
   dat<-t(data[,,e])
   r[]<-dat
@@ -148,43 +202,52 @@ for (e in 1:nens) {
   if ( !is.na( argv$boxcox_lambda)) {
     values_or <- values 
     values <- boxcox( values, argv$boxcox_lambda)
+    values_minok <- boxcox( pmin( pmax(values_or-1,0), pmax(values_or-0.1*values_or,0)), argv$boxcox_lambda) 
+    values_maxok <- boxcox( pmax( (values_or+1), (values_or+0.1*values_or)), argv$boxcox_lambda)
+    values_min <- boxcox( argv$value_min, argv$boxcox_lambda)
+    values_max <- boxcox( argv$value_max, argv$boxcox_lambda)
+    values_low <- boxcox( pmin( pmax(values_or-10,0), pmax(values_or-0.5*values_or,0)), argv$boxcox_lambda)
+    values_up  <- boxcox( pmax( (values_or+10), (values_or+0.5*values_or)), argv$boxcox_lambda)
+  } else {
+    values_or <- values 
+    values_minok <- pmin( pmax(values_or-1,0), pmax(values_or-0.1*values_or,0))
+    values_maxok <- pmax( (values_or+1), (values_or+0.1*values_or))
+    values_min <- argv$value_min
+    values_max <- argv$value_max
+    values_low <- pmin( pmax(values_or-10,0), pmax(values_or-0.5*values_or,0))
+    values_up  <- pmax( (values_or+10), (values_or+0.5*values_or))
   }
-  values_minok <- boxcox( pmin( pmax(values_or-1,0), pmax(values_or-0.1*values_or,0)), argv$boxcox_lambda) 
-  values_maxok <- boxcox( pmax( (values_or+1), (values_or+0.1*values_or)), argv$boxcox_lambda)
-  values_min <- boxcox( 0, argv$boxcox_lambda)
-  values_max <- boxcox( 300, argv$boxcox_lambda)
-  values_low <- boxcox( pmin( pmax(values_or-10,0), pmax(values_or-0.5*values_or,0)), argv$boxcox_lambda)
-  values_up  <- boxcox( pmax( (values_or+10), (values_or+0.5*values_or)), argv$boxcox_lambda)
   # 
   t00<-Sys.time()
   xgrid_spint <- obsnet$x
   ygrid_spint <- obsnet$y
   VecX <- obsnet$x
   VecY <- obsnet$y
-  dh <- 5000
-  thr <- 1
-  source("functions/sct.r")
   yo <- values
   flag<-yo; flag[]<--1
   z <- flag; z[]<-NA; ya <- z; yav <- z; sigma <- z; sigma_mu <- z
-  for (j in 1:10) {
+  for (j in 1:argv$num_iterations) {
     print(paste("iteration j =",j))
     stop <- T
     nbad <- 0
     for (i in 1:length(VecX)) {
-#      res <- sct(i, 50, plot=(j==1 & i<=50))
-#      res <- sct(i, 50, plot=((i%%10)==0))
-      res <- sct(i, 50)
+      res <- sct( i, plot=T, 
+                  pmax  = argv$num_max, 
+                  r_inn = argv$inner_radius,
+                  r_out = argv$outer_radius,
+                  kth_dist = argv$kth_closest_obs_horizontal_scale, 
+                  dhlim    = c( min_horizontal_scale, max_horizontal_scale),
+                  tpos_score = argv$tpos_score,
+                  tneg_score = argv$tneg_score)
       if (length(res$ix)>0) {
-#        print(res)
-        flag[res$ix]<-res$flag
-        z[res$ix]<-res$z
-        ya[res$ix]<-res$ya
-        yav[res$ix]<-res$yav
-        sigma[res$ix]<-res$sigma
-        sigma_mu[res$ix]<-res$sigma_mu
+        flag[res$ix] <- res$flag
+        z[res$ix]   <- res$z
+        ya[res$ix]  <- res$ya
+        yav[res$ix] <- res$yav
+        sigma[res$ix]    <- res$sigma
+        sigma_mu[res$ix] <- res$sigma_mu
         if ( any( res$flag==1)) {
-          nbad <- nbad + length(which(res$flag==1))
+          nbad <- nbad + length( which( res$flag == 1))
           stop <- F
         }
       }
@@ -195,20 +258,27 @@ for (e in 1:nens) {
   }
   #
   for (f in c( -1, 1)) {
-    print( paste("check",f))
+    print( paste("extra iteration - check flag =",f))
     ix1 <- which( flag == f)
     for (i in ix1) {
       j <- 9999
       flag[i] <- -1
-#      res <- sct( i, 50, plot=T, use0=T, justi=T)
-      res <- sct( i, 50, plot=F, use0=T, justi=T)
+      res <- sct( i,
+                  plot=F, justi=T, 
+                  pmax  = argv$num_max, 
+                  r_inn = argv$inner_radius,
+                  r_out = argv$outer_radius,
+                  kth_dist = argv$kth_closest_obs_horizontal_scale, 
+                  dhlim    = c( min_horizontal_scale, max_horizontal_scale),
+                  tpos_score = argv$tpos_score,
+                  tneg_score = argv$tneg_score)
       if (length(res$ix)>0) {
         aux <- flag
-        aux[res$ix]<-res$flag
-        if ( aux[i]==0) {
-          flag[i] <- 0
-        } else {
+        aux[res$ix] <- res$flag
+        if ( aux[i]==1) {
           flag[i] <- 1
+        } else {
+          flag[i] <- 0
         }
       }
     }
