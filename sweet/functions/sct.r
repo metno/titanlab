@@ -1,14 +1,14 @@
 #+ spatial consistency test 
-sct <- function( i,
-                 pmax       = 50,
-                 r_inn      = 25000,
-                 r_out      = 50000,
-                 kth_dist   = 3,
-                 dhlim      = NA, #c(min,max)
-                 tpos_score = 3,
-                 tneg_score = 3,
-                 justi      = F,
-                 plot       = F ) {
+sct_r <- function( i,
+                   pmax       = 50,
+                   r_inn      = 25000,
+                   r_out      = 50000,
+                   kth_dist   = 3,
+                   dhlim      = NA, #c(min,max)
+                   tpos_score = 3,
+                   tneg_score = 3,
+                   justi      = F,
+                   plot       = F ) {
 #------------------------------------------------------------------------------
 # Check for the occurrence of gross measurement errors by comparing observed
 # values against their neighbours.
@@ -101,11 +101,11 @@ sct <- function( i,
          ( yav[ix_bad] < values_minok[i02[ix_bad]] | 
            yav[ix_bad] > values_maxok[i02[ix_bad]])) {
       flag_inn[which.max(z[i23])] <- 1
-#      print("--------------------")
-#      print(paste("chi mean stdev stdev_mu",round(mu,3),round(sigma,3),round(sigma_mu,3)))
-#      print("ix or yo yb ya yav chi z flag")
-#      print(cbind(i03, values_or[i03],round(yo[i03],2),round(rep(yb,length(i03)),2),round(ya[i23],2),round(yav[i23],2),
-#                  round(chi[i23],2), round(z[i23],2),flag_inn))
+ #     print("--------------------")
+ #     print(paste("chi mean stdev stdev_mu",round(mu,3),round(sigma,3),round(sigma_mu,3)))
+ #     print("ix or yo yb ya yav chi z flag")
+ #     print(cbind(i03, values_or[i03],round(yo[i03],2),round(rep(yb,length(i03)),2),round(ya[i23],2),round(yav[i23],2),
+ #                 round(chi[i23],2), round(z[i23],2),flag_inn))
     } else if ( !any( ( yav[ix_bad] < values_minok[i02[ix_bad]] | 
                         yav[ix_bad] > values_maxok[i02[ix_bad]])) |
                 !any( ( ( z > tpos_score & yav >= yo[i02]) |

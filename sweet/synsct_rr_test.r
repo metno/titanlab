@@ -128,7 +128,6 @@ background_values <- 0
 # from the command line
 tpos_score <- rep( argv$tpos_score, obsnet$n)
 tneg_score <- rep( argv$tneg_score, obsnet$n)
-t_sod <- rep( argv$t_sod, obsnet$n)
 eps2 <- rep( argv$eps2, obsnet$n)
 min_horizontal_scale <- argv$inner_radius/10
 max_horizontal_scale <- argv$inner_radius
@@ -217,7 +216,9 @@ for (e in 1:nens) {
     values_low <- pmin( pmax(values_or-10,0), pmax(values_or-0.5*values_or,0))
     values_up  <- pmax( (values_or+10), (values_or+0.5*values_or))
   }
-  # 
+  #
+  jump <- F
+  if (!jump) {
   t00<-Sys.time()
   xgrid_spint <- obsnet$x
   ygrid_spint <- obsnet$y
@@ -231,14 +232,14 @@ for (e in 1:nens) {
     stop <- T
     nbad <- 0
     for (i in 1:length(VecX)) {
-      res <- sct( i, plot=T, 
-                  pmax  = argv$num_max, 
-                  r_inn = argv$inner_radius,
-                  r_out = argv$outer_radius,
-                  kth_dist = argv$kth_closest_obs_horizontal_scale, 
-                  dhlim    = c( min_horizontal_scale, max_horizontal_scale),
-                  tpos_score = argv$tpos_score,
-                  tneg_score = argv$tneg_score)
+      res <- sct_r( i, plot=F, 
+                    pmax  = argv$num_max, 
+                    r_inn = argv$inner_radius,
+                    r_out = argv$outer_radius,
+                    kth_dist = argv$kth_closest_obs_horizontal_scale, 
+                    dhlim    = c( min_horizontal_scale, max_horizontal_scale),
+                    tpos_score = argv$tpos_score,
+                    tneg_score = argv$tneg_score)
       if (length(res$ix)>0) {
         flag[res$ix] <- res$flag
         z[res$ix]   <- res$z
@@ -253,6 +254,7 @@ for (e in 1:nens) {
       }
     }
     print( paste("    # bad observations =", nbad, round(nbad/length(flag),4)))
+    print( paste("    # missing flags    =", length(which(flag==-1)), round(length(which(flag==-1))/length(flag),4)))
     print( paste("TOT # bad observations =", length(which(flag==1)), round(length(which(flag==1))/length(flag),4)))
     if (stop) break
   }
@@ -263,15 +265,15 @@ for (e in 1:nens) {
     for (i in ix1) {
       j <- 9999
       flag[i] <- -1
-      res <- sct( i,
-                  plot=F, justi=T, 
-                  pmax  = argv$num_max, 
-                  r_inn = argv$inner_radius,
-                  r_out = argv$outer_radius,
-                  kth_dist = argv$kth_closest_obs_horizontal_scale, 
-                  dhlim    = c( min_horizontal_scale, max_horizontal_scale),
-                  tpos_score = argv$tpos_score,
-                  tneg_score = argv$tneg_score)
+      res <- sct_r( i,
+                    plot=F, justi=T, 
+                    pmax  = argv$num_max, 
+                    r_inn = argv$inner_radius,
+                    r_out = argv$outer_radius,
+                    kth_dist = argv$kth_closest_obs_horizontal_scale, 
+                    dhlim    = c( min_horizontal_scale, max_horizontal_scale),
+                    tpos_score = argv$tpos_score,
+                    tneg_score = argv$tneg_score)
       if (length(res$ix)>0) {
         aux <- flag
         aux[res$ix] <- res$flag
@@ -283,6 +285,8 @@ for (e in 1:nens) {
       }
     }
   }
+  print( paste("    # good obser.      =", length(which(flag==0)), round(length(which(flag==0))/length(flag),4)))
+  print( paste("    # missing flags    =", length(which(flag==-1)), round(length(which(flag==-1))/length(flag),4)))
   print( paste("TOT # bad observations =", length(which(flag==1)), round(length(which(flag==1))/length(flag),4)))
   ixa <- which( true_flag==1 & flag==1)
   ixc <- which( true_flag==1 & flag==0)
@@ -299,23 +303,39 @@ for (e in 1:nens) {
   pofa <- b/(b+d)
   print( paste("a(bad) b c d", a,"(",length(which( true_flag==1)),")", b, c, d, a+b+c+d))
   print( paste("acc pod pofa ets", round(acc,2), round(pod,2), round(pofa,2), round(ets,2)))
-save.image("tmp.rdata")
-q()
-#  res <- sct( obsnet$lat, obsnet$lon, elevs, values, obs_to_check, background_values, argv$background_elab_type, argv$num_min, argv$num_max, argv$inner_radius, argv$outer_radius, argv$num_iterations, argv$num_min_prof, argv$min_elev_diff, min_horizontal_scale, max_horizontal_scale, argv$kth_closest_obs_horizontal_scale, argv$vertical_scale, argv$value_min, argv$value_max, rep(argv$sig2o_min,length(obsnet$lat)), rep(argv$sig2o_max,length(obsnet$lat)), eps2, tpos_score, tneg_score, t_sod, debug)
+  #
+  }
+  bkg <- rep(background_values,length(obsnet$lat))
+  obs_to_check <- as.integer( obs_to_check)
+  obsnet$z <- as.numeric( obsnet$z)
+  res<-sct( as.numeric(obsnet$lat), as.numeric(obsnet$lon), as.numeric(obsnet$z), as.numeric(values), as.integer(obs_to_check), as.numeric(bkg), as.character(argv$background_elab_type), as.integer(argv$num_min), as.integer(argv$num_max), as.numeric(argv$inner_radius), as.numeric(argv$outer_radius), as.integer(argv$num_iterations), as.integer(argv$num_min_prof), as.numeric(argv$min_elev_diff), as.numeric(min_horizontal_scale), as.numeric(max_horizontal_scale), as.integer(argv$kth_closest_obs_horizontal_scale), as.numeric(argv$vertical_scale), as.numeric(values_min), as.numeric(values_max), as.numeric(values_low), as.numeric(values_up), as.numeric(values_minok), as.numeric(values_maxok), as.numeric(eps2), as.numeric(tpos_score), as.numeric(tneg_score), debug)
+  flag<-res[[1]]
+  score<-res[[2]]
+  a <- length( which( true_flag==1 & flag==1))
+  c <- length( which( true_flag==1 & flag==0))
+  b <- length( which( true_flag==0 & flag==1))
+  d <- length( which( true_flag==0 & flag==0))
+  rand <- (a+c) * (a+b) / (a+b+c+d)
+  ets <- (a-rand) / (a+b+c-rand)
+  acc <- (a+d)/(a+b+c+d)
+  pod <- a/(a+c)
+  pofa <- b/(b+d)
+  print( paste("a(bad) b c d", a,"(",length(which( true_flag==1)),")", b, c, d, a+b+c+d))
+  print( paste("acc pod pofa ets", round(acc,2), round(pod,2), round(pofa,2), round(ets,2)))
   print(Sys.time()-t00)
-  nres <- length(res)
-  res[[nres+1]] <- true_flag
-  res[[nres+2]] <- values 
-  res[[nres+3]] <- values_or 
-  if ( flag) {
-    res_bak <- res
-    for (i in 1:length(res)) {
-      res[[i]] <- vector(mode="numeric", length=obsnet_or$n)
-      res[[i]][] <- argv$undef
-      res[[i]][ixkeep] <- res_bak[[i]]
-    }
-    true_flag <- res[[nres+1]]
-  } 
+#  nres <- length(res)
+#  res[[nres+1]] <- true_flag
+#  res[[nres+2]] <- values 
+#  res[[nres+3]] <- values_or 
+#  if ( flag) {
+#    res_bak <- res
+#    for (i in 1:length(res)) {
+#      res[[i]] <- vector(mode="numeric", length=obsnet_or$n)
+#      res[[i]][] <- argv$undef
+#      res[[i]][ixkeep] <- res_bak[[i]]
+#    }
+#    true_flag <- res[[nres+1]]
+#  } 
   #
   #
   if (!exists("conn_out")) conn_out<-NA
@@ -329,6 +349,7 @@ q()
   points(obsnet$x[ix],obsnet$y[ix],pch=21,bg="yellow",cex=3)
   box()
   aux <- dev.off()
+q()
 }
 #
 #------------------------------------------------------------------------------

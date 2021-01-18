@@ -1,0 +1,1 @@
+n=1000; for l in 10000 50000 100000 200000 400000; do qsub -o /lustre/storeB/users/cristianl/sweet/synsct_tg/log/sweet_rr_l$l\_n$n\.log -e /lustre/storeB/users/cristianl/sweet/synsct_tg/log/sweet_rr_l$l\_n$n\.err driver_sweet_rr.sh $l $n; done

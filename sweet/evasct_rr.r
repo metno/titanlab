@@ -57,8 +57,8 @@ obsnet <- read_obsNet( file=argv$ffin_obs, crs_in=proj4.wgs84, crs_out=proj4.lcc
                        extent_out=extent( argv$gridded_extent[1], argv$gridded_extent[2], 
                                           argv$gridded_extent[3], argv$gridded_extent[4]))
 obsnet_or <- obsnet
-#print("-- obsNet --")
-#print(obsnet$n)
+print("-- obsNet --")
+print(obsnet$n)
 #
 #------------------------------------------------------------------------------
 # Read input nc-file
@@ -82,16 +82,14 @@ xmax <- max(x) + dx/2
 ymin <- min(y) - dy/2
 ymax <- max(y) + dy/2
 r <- raster( extent( xmin, xmax, ymin, ymax), res = c( dx, dy), crs = proj4)
-#print("-- created raster --")
-#print(r)
+print("-- created raster --")
+print(r)
 #
 #------------------------------------------------------------------------------
 dir_in<-"/home/cristianl/data/sweet/synsct_rr/res"
 dir_out<-"/home/cristianl/data/sweet/synsct_rr/res_png"
 i<-0
 res<-list()
-ntot <- vector()
-iso <- vector()
 vth <- vector()
 vsod <- vector()
 vscore <- vector()
@@ -99,10 +97,11 @@ vinnov <- vector()
 vscore_in <- vector()
 vscore_d <- vector()
 vscore_v <- vector()
-rr <- c( 0.1, 1, 2, 4, 8, 16, 32, 64, 128)
-nrr <- length( rr)
-vscore_r <- array( data=NA, dim=c( length(argv$t_score_eva) * length(argv$t_sod_eva), nrr)) 
-n_r <- array( data=NA, dim=c( length(argv$t_score_eva) * length(argv$t_sod_eva), nrr)) 
+vscore_a <- vector()
+vscore_xl <- vector()
+vscore_l <- vector()
+vscore_m <- vector()
+vscore_s <- vector()
 argv$rr_lscale <- formatC( argv$rr_lscale, width=6, flag="0", format="fg")
 argv$pGE <- formatC( argv$pGE, width=2, flag="0")
 argv$thinobs_perc <- formatC( argv$thinobs_perc, width=2, flag="0")
@@ -115,40 +114,60 @@ if ( argv$boxcox_lambda == 0.3) {
 if ( argv$pGE == "00" ) {
   score <- "pofd"
   score_lab <- "POFD"
-  ylim <- c(0,0.18)
+#  ylim <- c(0,0.1)
+  ylim <- c(0,1)
 } else {
   score <- "ets"
   score_lab <- "ETS"
   ylim <- c(0,1)
 }
-#
-#-----------------------------------------------------------------------------------------------
 for (th in argv$t_score_eva) {
   for (sod in argv$t_sod_eva) {
     ffin <- file.path( dir_in,
              paste0("synsct_rr_res_l",argv$rr_lscale,"_b",bstr,"_th",th,"_sod",sod,"_pGE",argv$pGE,"_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".dat"))
-    cat( paste("----> file", ffin,"\n"))
+    print( ffin)
     if ( !file.exists( ffin)) next
     i <- i+1
     res[[i]] <- read_sctRes( file=ffin)
-    vth[i] <- as.numeric(th)
-    vsod[i] <- as.numeric(sod)
+    vth[i] <- th
+    vsod[i] <- sod
+    if ( i == 1) {
+      ffin00 <- file.path( dir_in,
+               paste0("synsct_rr_res_l",argv$rr_lscale,"_b",bstr,"_th",th,"_sod",sod,"_pGE00_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".dat"))
+      auxres <- read_sctRes( file=ffin00)
+      undef <- unique(auxres[which(auxres[,11]<(-500)),11])
+      if (length(undef)==0) undef<-(-999)
+      ix <- which( auxres[,11] != undef)
+      innov_q01 <- as.numeric( quantile( auxres[ix,11], probs=0.01, na.rm=T))
+      innov_q10 <- as.numeric( quantile( auxres[ix,11], probs=0.10, na.rm=T))
+      innov_q25 <- as.numeric( quantile( auxres[ix,11], probs=0.25, na.rm=T))
+      innov_q75 <- as.numeric( quantile( auxres[ix,11], probs=0.75, na.rm=T))
+      innov_q90 <- as.numeric( quantile( auxres[ix,11], probs=0.90, na.rm=T))
+      innov_q99 <- as.numeric( quantile( auxres[ix,11], probs=0.99, na.rm=T))
+      print( paste("innovation q 1 10 25 75 90 99",innov_q01,innov_q10,innov_q25,innov_q75,innov_q90,innov_q99))
+      br <- c( -10000, innov_q01, innov_q10, innov_q25, innov_q75, innov_q90, innov_q99, 10000)
+      col <- c("gray", "blue", "cornflowerblue", "gold", "pink", "red", "black")
+    }
     #
     undef <- unique(res[[i]][which(res[[i]][,11]<(-500)),11])
     if (length(undef)==0) undef<-(-999)
-    iso[i] <- length( which( res[[i]][,2] %in% c(11,12))) 
-    ntot[i] <- length( res[[i]][,2] %in% c(0,1,11,12))
-    ix <- which( res[[i]][,2] %in% c(0,1) & res[[i]][,15] %in% c(0,1))
+    ix <- which( res[[i]][,2] != undef)
     if ( length(ix) > 0) vscore[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
-#    ix <- which( res[[i]][,13] > 0.45 & res[[i]][,2] != undef)
-#    if ( length(ix) > 0) vscore_d[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
-#    ix <- which( res[[i]][,13] <= 0.45 & res[[i]][,2] != undef)
-#    if ( length(ix) > 0) vscore_v[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above")
-    for (j in 1:nrr) {
-      ix <- which( res[[i]][,17] >= rr[j] & res[[i]][,2] %in% c(0,1) & res[[i]][,15] %in% c(0,1))
-      n_r[i,j] <- length(ix)
-      if ( length(ix) > 0) vscore_r[i,j] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above")
-    }
+    ix <- which( res[[i]][,13] > 0.85 & res[[i]][,2] != undef)
+    if ( length(ix) > 0) vscore_d[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
+    ix <- which( res[[i]][,13] > 0.45 & res[[i]][,13] <= 0.85 & res[[i]][,2] != undef)
+    if ( length(ix) > 0) vscore_a[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
+    ix <- which( res[[i]][,13] <= 0.45 & res[[i]][,2] != undef)
+    if ( length(ix) > 0) vscore_v[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above")
+    #
+    ix <- which( res[[i]][,2] != undef & ( res[[i]][,11] < innov_q01 | res[[i]][,11] > innov_q99))
+    if ( length(ix) > 0) vscore_xl[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
+    ix <- which( res[[i]][,2] != undef & ( (res[[i]][,11] >= innov_q01 & res[[i]][,11] < innov_q10) | ( res[[i]][,11] > innov_q90 & res[[i]][,11] <= innov_q99)))
+    if ( length(ix) > 0) vscore_l[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
+    ix <- which( res[[i]][,2] != undef & ( (res[[i]][,11] >= innov_q10 & res[[i]][,11] < innov_q25) | ( res[[i]][,11] > innov_q75 & res[[i]][,11] <= innov_q90)))
+    if ( length(ix) > 0) vscore_m[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
+    ix <- which( res[[i]][,2] != undef & res[[i]][,11] >= innov_q25 & res[[i]][,11] <= innov_q75)
+    if ( length(ix) > 0) vscore_s[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
     #
     ffout <- file.path( dir_out, paste0("synsct_rr_res_hourglass_l",argv$rr_lscale,"_b",bstr,"_th",th,"_sod",sod,"_pGE",argv$pGE,"_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".png"))
     hourglass_contingencyTable( ffout=ffout, 
@@ -186,79 +205,88 @@ for (th in argv$t_score_eva) {
     cat(paste("  written file",ffout,"\n"))
   }
 }
-print("isolated cases")
-print(iso)
-print("total number of cases")
-print(ntot)
 #
-#----------------------------------------------------------------------------------------------
-usod <- as.numeric( argv$t_sod_eva)
-col_usod <- rev( rainbow( length( usod)))
-uth <- as.numeric( argv$t_score_eva)
-col_uth <- rev( rainbow( length( uth)))
-l_str <- round( as.numeric( argv$rr_lscale) / 1000, 0)
-#
-#----------------------------------------------------------------------------------------------
 # score as a function of sct-threshold
 ffout <- file.path( dir_out, paste0("synsct_rr_res_",score,"vsth_l",argv$rr_lscale,"_b",bstr,"_pGE",argv$pGE,"_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".png"))
+usod <- unique(vsod)
+col <- rev(rainbow(length(usod)))
+print(vth)
 png( file=ffout, width=800, height=800)
-par(mar=c(5,5,4,1))
-plot( as.numeric(vth), vscore, xlab="",ylab="", main="", axes=F, ylim=ylim, col="white")
+par(mar=c(4,4,4,1))
+plot( as.numeric(vth), vscore, xlab="",ylab="", main="", axes=F, ylim=ylim)
 for (s in 1:length(usod)) {
   ix<-which(vsod==usod[s])
-  lines(vth[ix],vscore[ix],col=col_usod[s],lwd=4)
+  lines(vth[ix],vscore[ix],col=col[s],lwd=3)
+#  lines(vth[ix],vscore_d[ix],col=col[s],lwd=3,lty=2)
+#  lines(vth[ix],vscore_m[ix],col=col[s],lwd=3,lty=2)
+#  lines(vth[ix],vscore_v[ix],col=col[s],lwd=3,lty=2)
+  polygon( c(vth[ix],vth[ix[length(ix):1]]), c(vscore_v[ix],vscore_d[ix[length(ix):1]]), col=col[s], density=20)
 }
-points( as.numeric(vth), vscore, col=col_usod[1],cex=2)
+points( as.numeric(vth), vscore, pch=21, bg="darkgray",cex=2)
 abline(h=0)
-#legend(x="topright",lty=1,col=c("white",col_usod),legend=c("sod",usod),cex=2,lwd=6)
+legend(x="topright",lty=1,col=c("white",col),legend=c("sod",usod),cex=2,lwd=6)
 axis(1,cex.axis=1.5)
 axis(2,cex.axis=1.5)
 mtext(1,text="SCT threshold",line=3, cex=2)
 mtext(2,text=score_lab,line=2, cex=2)
-if ( argv$thinobs_perc == "00") thinobs_str <- "100%"
-if ( argv$thinobs_perc == "50") thinobs_str <- "50%"
-if ( score == "pofd" ) {
-  mtext( 3, text=paste0("l=",l_str,"km, Box-Cox transf=",argv$boxcox_lambda,", data used=",thinobs_str), line=2, cex=2.5)
-  abline( h=seq(-10,10, by=0.05), lty=2, col="gray")
-} else {
-  mtext( 3, text=paste0("l=",l_str,"km, Pge=",argv$pGE,", Box-Cox transf=",argv$boxcox_lambda,", data used=",thinobs_str), line=2, cex=2.5)
-  abline( h=seq(-10,10, by=0.1), lty=2, col="gray")
-}
+mtext(3,text=paste("l=",argv$rr_lscale," b=",argv$boxcox_lambda," pGE=",argv$pGE," sel=",argv$thinobs_perc," n=",argv$synsct_rr_nens),line=2, cex=2)
 box()
 devnull <- dev.off()
-cat( paste( "====> written file", ffout, "\n"))
+cat(paste("  written file",ffout,"\n"))
 #
-#----------------------------------------------------------------------------------------------
-# score as a function of precipitation amount
+# score as a function of sct-threshold and intensity
 ffout <- file.path( dir_out, paste0("synsct_rr_res_",score,"vsthint_l",argv$rr_lscale,"_b",bstr,"_pGE",argv$pGE,"_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".png"))
-#print(vscore_r)
-#print(n_r)
-if ( score == "pofd") xleg <- "topleft"
-if ( score == "ets")  xleg <- "topright"
+usod <- unique(vsod)
+col <- rev(rainbow(length(usod)))
+print(vth)
 png( file=ffout, width=800, height=800)
-par( mar=c(5,5,4,1))
-plot( 1:nrr, 1:nrr, xlab="",ylab="", main="", axes=F, ylim=ylim, col="white")
+par(mar=c(4,4,4,1))
+plot( as.numeric(vth), vscore_s, xlab="",ylab="", main="", axes=F, ylim=ylim)
 for (s in 1:length(usod)) {
-  for (t in 1:length(uth)) {
-    ix<-which( vsod == usod[s] & vth == uth[t] )
-    lines(1:nrr, vscore_r[ix,], col=col_uth[t], lwd=4)
-  }
+  ix<-which(vsod==usod[s])
+  lines(vth[ix],vscore_xl[ix],col=col[s],lwd=3)
+#  lines(vth[ix],vscore_l[ix],col=col[s],lwd=3)
+#  lines(vth[ix],vscore_m[ix],col=col[s],lwd=3)
+#  lines(vth[ix],vscore_s[ix],col=col[s],lwd=3)
+#  polygon( c(vth[ix],vth[ix[length(ix):1]]), c(vscore_v[ix],vscore_d[ix[length(ix):1]]), col=col[s], density=20)
 }
+points( as.numeric(vth), vscore_s, pch=21, bg="darkgray",cex=2)
 abline(h=0)
-axis( 1, cex.axis=1.5, at=1:nrr, labels=rr)
-axis( 2, cex.axis=1.5)
-mtext( 1, text="precipitation amount greater than (mm)",line=3, cex=2)
-mtext( 2, text=score_lab, line=2.3, cex=2)
-if ( score == "pofd" ) {
-  mtext( 3, text=paste0("l=",l_str,"km, Box-Cox transf=",argv$boxcox_lambda,", data used=",thinobs_str), line=2, cex=2.5)
-  abline( h=seq(-10,10, by=0.05), lty=2, col="gray")
-} else {
-  mtext( 3, text=paste0("l=",l_str,"km, Pge=",argv$pGE,", Box-Cox transf=",argv$boxcox_lambda,", data used=",thinobs_str), line=2, cex=2.5)
-  abline( h=seq(-10,10, by=0.1), lty=2, col="gray")
-}
-legend( x=xleg, lty=1, col=c("white",col_uth), legend=c("Tsct",uth), cex=2, lwd=6, bg="white")
+legend(x="topright",lty=1,col=c("white",col),legend=c("sod",usod),cex=2,lwd=6)
+axis(1,cex.axis=1.5)
+axis(2,cex.axis=1.5)
+mtext(1,text="SCT threshold",line=3, cex=2)
+mtext(2,text=score_lab,line=2, cex=2)
+mtext(3,text=paste("l=",argv$rr_lscale," b=",argv$boxcox_lambda," pGE=",argv$pGE," sel=",argv$thinobs_perc," n=",argv$synsct_rr_nens),line=2, cex=2)
 box()
 devnull <- dev.off()
-cat( paste( "====> written file", ffout, "\n"))
+cat(paste("  written file",ffout,"\n"))
+#
+# score as a function of sct-threshold
+usod <- unique(vsod)
+col <- rev(rainbow(length(usod)))
+print(vth)
+png( file=ffout, width=800, height=800)
+par(mar=c(4,4,4,1))
+plot( as.numeric(vth), vscore_s, xlab="",ylab="", main="", axes=F, ylim=ylim)
+for (s in 1:length(usod)) {
+  ix<-which(vsod==usod[s])
+  lines(vth[ix],vscore_xl[ix],col=col[s],lwd=3)
+#  lines(vth[ix],vscore_l[ix],col=col[s],lwd=3)
+#  lines(vth[ix],vscore_m[ix],col=col[s],lwd=3)
+#  lines(vth[ix],vscore_s[ix],col=col[s],lwd=3)
+#  polygon( c(vth[ix],vth[ix[length(ix):1]]), c(vscore_v[ix],vscore_d[ix[length(ix):1]]), col=col[s], density=20)
+}
+points( as.numeric(vth), vscore_s, pch=21, bg="darkgray",cex=2)
+abline(h=0)
+legend(x="topright",lty=1,col=c("white",col),legend=c("sod",usod),cex=2,lwd=6)
+axis(1,cex.axis=1.5)
+axis(2,cex.axis=1.5)
+mtext(1,text="SCT threshold",line=3, cex=2)
+mtext(2,text=score_lab,line=2, cex=2)
+mtext(3,text=paste("l=",argv$rr_lscale," b=",argv$boxcox_lambda," pGE=",argv$pGE," sel=",argv$thinobs_perc," n=",argv$synsct_rr_nens),line=2, cex=2)
+box()
+devnull <- dev.off()
+cat(paste("  written file",ffout,"\n"))
 #
 q()

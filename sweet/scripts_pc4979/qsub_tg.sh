@@ -1,0 +1,1 @@
+for a in 01 10 21 30 41; do for sel in 00 50; do qsub -o /lustre/storeB/users/cristianl/sweet/synsct_tg/log/synsct_tg_res_a$a\_sel$sel\.log -e /lustre/storeB/users/cristianl/sweet/synsct_tg/log/synsct_tg_res_a$a\_sel$sel\.err driver_synsct_tg.sh $a $sel; done; done

@@ -4,7 +4,7 @@
 ffsweet=/home/cristianl/data/sweet/synsct_tg/syntg_n41.dat
 eva=/home/cristianl/projects/titanlab/sweet/evasct_tg.r
 # sct param
-synsct_tg_nens=500
+synsct_tg_nens=010
 #
 #
 for a_vertprof_ix in 01 10 21 30 41; do

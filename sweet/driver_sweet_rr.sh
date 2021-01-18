@@ -1,25 +1,25 @@
 #!/bin/bash
 #$ -N sweet_rr 
 #$ -S /bin/bash
-#$ -l h_rt=24:00:00
+#$ -l h_rt=36:00:00
 #$ -pe shmem-1 1
 #$ -q research-el7.q
-#$ -l h_vmem=2500M
+#$ -l h_vmem=3500M
 #==============================================================================
 #
 # load modules
 
-#  module load R/R-3.5.2
-#  module load hdf5/1.10.5-gcc
-#  module load netcdf
-#  module load gdal
+  module load R/R-3.5.2
+  module load hdf5/1.10.5-gcc
+  module load netcdf
+  module load gdal
 
 # Constants
-#export R_LIBS=/home/cristianl/Rpackages-centos
-#export SWEET_PATH=/home/cristianl/projects/titanlab/sweet
-#export R_DEFAULT_PACKAGES="datasets","utils","grDevices","graphics","stats","methods"
+export R_LIBS=/home/cristianl/Rpackages-centos
+export SWEET_PATH=/home/cristianl/projects/titanlab/sweet
+export R_DEFAULT_PACKAGES="datasets","utils","grDevices","graphics","stats","methods"
 #
-dirout=/home/cristianl/data/sweet/rr
+dirout=/lustre/storeB/users/cristianl/sweet/rr
 ffconf=/home/cristianl/projects/titanlab/sweet/etc/sweet_rr.ini
 sweet=/home/cristianl/projects/titanlab/sweet/sweet.r
 #
