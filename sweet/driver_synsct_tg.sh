@@ -32,12 +32,10 @@ thinobs_perc=$2
 for pGE in 40; do
   for t in 02 04 09 16 25; do
     tpos_score=$t; tneg_score=$t
-    for t_sod in 02 04 09 16 25; do
-      ffout=/lustre/storeB/users/cristianl/sweet/synsct_tg/res/synsct_tg_res_a$a_vertprof_ix\_th$tpos_score\_sod$t_sod\_pGE$pGE\_sel$thinobs_perc\_n$synsct_tg_nens.dat
-      echo "$sct --ffin_sim $ffsweet --ffout $ffout --config_file $ffconf --tpos_score $tpos_score --tneg_score $tneg_score --t_sod $t_sod --pGE $pGE --a_vertprof_ix $a_vertprof_ix --thinobs_perc $thinobs_perc --synsct_tg_nens $synsct_tg_nens"
-      $sct --ffin_sim $ffsweet --ffout $ffout --config_file $ffconf --tpos_score $tpos_score --tneg_score $tneg_score --t_sod $t_sod --pGE $pGE --a_vertprof_ix $a_vertprof_ix --thinobs_perc $thinobs_perc --synsct_tg_nens $synsct_tg_nens
-      echo "written file "$ffout
-    done
+    ffout=/lustre/storeB/users/cristianl/sweet/synsct_tg/res/synsct_tg_res_a$a_vertprof_ix\_th$tpos_score\_pGE$pGE\_sel$thinobs_perc\_n$synsct_tg_nens.dat
+    echo "$sct --ffin_sim $ffsweet --ffout $ffout --config_file $ffconf --tpos_score $tpos_score --tneg_score $tneg_score --pGE $pGE --a_vertprof_ix $a_vertprof_ix --thinobs_perc $thinobs_perc --synsct_tg_nens $synsct_tg_nens"
+    $sct --ffin_sim $ffsweet --ffout $ffout --config_file $ffconf --tpos_score $tpos_score --tneg_score $tneg_score --pGE $pGE --a_vertprof_ix $a_vertprof_ix --thinobs_perc $thinobs_perc --synsct_tg_nens $synsct_tg_nens
+    echo "written file "$ffout
   done
 done
 #

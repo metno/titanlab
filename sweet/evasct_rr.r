@@ -62,28 +62,28 @@ print(obsnet$n)
 #
 #------------------------------------------------------------------------------
 # Read input nc-file
-if ( !file.exists( argv$ffin_fields)) boom(str=argv$ffin_fields, code=1) 
-nc <- nc_open( argv$ffin_fields, readunlim=FALSE )
-v1 <- nc$var[[1]]
-data <- ncvar_get( nc, v1 ) 
-x <- nc$dim[[1]]$vals
-y <- nc$dim[[2]]$vals
-ens <- nc$dim[[3]]$vals
-proj4 <- ncatt_get( nc, varid=nc$var[[2]], attname="proj4")$value
-nc_close( nc)
-# dim(data) x,y,ensemble
-nx <- length( x)
-ny <- length( y)
-nens <- length( ens)
-dx <- abs( x[2] - x[1])
-dy <- abs( y[2] - y[1])
-xmin <- min(x) - dx/2
-xmax <- max(x) + dx/2
-ymin <- min(y) - dy/2
-ymax <- max(y) + dy/2
-r <- raster( extent( xmin, xmax, ymin, ymax), res = c( dx, dy), crs = proj4)
-print("-- created raster --")
-print(r)
+#if ( !file.exists( argv$ffin_fields)) boom(str=argv$ffin_fields, code=1) 
+#nc <- nc_open( argv$ffin_fields, readunlim=FALSE )
+#v1 <- nc$var[[1]]
+#data <- ncvar_get( nc, v1 ) 
+#x <- nc$dim[[1]]$vals
+#y <- nc$dim[[2]]$vals
+#ens <- nc$dim[[3]]$vals
+#proj4 <- ncatt_get( nc, varid=nc$var[[2]], attname="proj4")$value
+#nc_close( nc)
+## dim(data) x,y,ensemble
+#nx <- length( x)
+#ny <- length( y)
+#nens <- length( ens)
+#dx <- abs( x[2] - x[1])
+#dy <- abs( y[2] - y[1])
+#xmin <- min(x) - dx/2
+#xmax <- max(x) + dx/2
+#ymin <- min(y) - dy/2
+#ymax <- max(y) + dy/2
+#r <- raster( extent( xmin, xmax, ymin, ymax), res = c( dx, dy), crs = proj4)
+#print("-- created raster --")
+#print(r)
 #
 #------------------------------------------------------------------------------
 dir_in<-"/home/cristianl/data/sweet/synsct_rr/res"
@@ -91,7 +91,6 @@ dir_out<-"/home/cristianl/data/sweet/synsct_rr/res_png"
 i<-0
 res<-list()
 vth <- vector()
-vsod <- vector()
 vscore <- vector()
 vinnov <- vector()
 vscore_in <- vector()
@@ -111,117 +110,70 @@ if ( argv$boxcox_lambda == 0.3) {
 } else {
   bstr <- "05"
 }
-if ( argv$pGE == "00" ) {
+if (argv$eva_score == "pofd") {
   score <- "pofd"
   score_lab <- "POFD"
-#  ylim <- c(0,0.1)
   ylim <- c(0,1)
-} else {
+} else if (argv$eva_score == "pod") {
+  score <- "pod"
+  score_lab <- "POD"
+  ylim <- c(0,1)
+} else if (argv$eva_score == "acc") {
+  score <- "acc"
+  score_lab <- "ACC"
+  ylim <- c(0,1)
+} else if (argv$eva_score == "ets") {
   score <- "ets"
   score_lab <- "ETS"
   ylim <- c(0,1)
 }
+#
 for (th in argv$t_score_eva) {
-  for (sod in argv$t_sod_eva) {
-    ffin <- file.path( dir_in,
-             paste0("synsct_rr_res_l",argv$rr_lscale,"_b",bstr,"_th",th,"_sod",sod,"_pGE",argv$pGE,"_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".dat"))
-    print( ffin)
-    if ( !file.exists( ffin)) next
-    i <- i+1
-    res[[i]] <- read_sctRes( file=ffin)
-    vth[i] <- th
-    vsod[i] <- sod
-    if ( i == 1) {
-      ffin00 <- file.path( dir_in,
-               paste0("synsct_rr_res_l",argv$rr_lscale,"_b",bstr,"_th",th,"_sod",sod,"_pGE00_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".dat"))
-      auxres <- read_sctRes( file=ffin00)
-      undef <- unique(auxres[which(auxres[,11]<(-500)),11])
-      if (length(undef)==0) undef<-(-999)
-      ix <- which( auxres[,11] != undef)
-      innov_q01 <- as.numeric( quantile( auxres[ix,11], probs=0.01, na.rm=T))
-      innov_q10 <- as.numeric( quantile( auxres[ix,11], probs=0.10, na.rm=T))
-      innov_q25 <- as.numeric( quantile( auxres[ix,11], probs=0.25, na.rm=T))
-      innov_q75 <- as.numeric( quantile( auxres[ix,11], probs=0.75, na.rm=T))
-      innov_q90 <- as.numeric( quantile( auxres[ix,11], probs=0.90, na.rm=T))
-      innov_q99 <- as.numeric( quantile( auxres[ix,11], probs=0.99, na.rm=T))
-      print( paste("innovation q 1 10 25 75 90 99",innov_q01,innov_q10,innov_q25,innov_q75,innov_q90,innov_q99))
-      br <- c( -10000, innov_q01, innov_q10, innov_q25, innov_q75, innov_q90, innov_q99, 10000)
-      col <- c("gray", "blue", "cornflowerblue", "gold", "pink", "red", "black")
-    }
-    #
-    undef <- unique(res[[i]][which(res[[i]][,11]<(-500)),11])
-    if (length(undef)==0) undef<-(-999)
-    ix <- which( res[[i]][,2] != undef)
-    if ( length(ix) > 0) vscore[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
-    ix <- which( res[[i]][,13] > 0.85 & res[[i]][,2] != undef)
-    if ( length(ix) > 0) vscore_d[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
-    ix <- which( res[[i]][,13] > 0.45 & res[[i]][,13] <= 0.85 & res[[i]][,2] != undef)
-    if ( length(ix) > 0) vscore_a[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
-    ix <- which( res[[i]][,13] <= 0.45 & res[[i]][,2] != undef)
-    if ( length(ix) > 0) vscore_v[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above")
-    #
-    ix <- which( res[[i]][,2] != undef & ( res[[i]][,11] < innov_q01 | res[[i]][,11] > innov_q99))
-    if ( length(ix) > 0) vscore_xl[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
-    ix <- which( res[[i]][,2] != undef & ( (res[[i]][,11] >= innov_q01 & res[[i]][,11] < innov_q10) | ( res[[i]][,11] > innov_q90 & res[[i]][,11] <= innov_q99)))
-    if ( length(ix) > 0) vscore_l[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
-    ix <- which( res[[i]][,2] != undef & ( (res[[i]][,11] >= innov_q10 & res[[i]][,11] < innov_q25) | ( res[[i]][,11] > innov_q75 & res[[i]][,11] <= innov_q90)))
-    if ( length(ix) > 0) vscore_m[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
-    ix <- which( res[[i]][,2] != undef & res[[i]][,11] >= innov_q25 & res[[i]][,11] <= innov_q75)
-    if ( length(ix) > 0) vscore_s[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
-    #
-    ffout <- file.path( dir_out, paste0("synsct_rr_res_hourglass_l",argv$rr_lscale,"_b",bstr,"_th",th,"_sod",sod,"_pGE",argv$pGE,"_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".png"))
-    hourglass_contingencyTable( ffout=ffout, 
-                                an_res=res[[i]][,9],
-                                cv_res=res[[i]][,10],
-                                ge=res[[i]][,15],
-                                dqc=res[[i]][,2],
-                                sig2o=res[[i]][,14],
-                                sct=res[[i]][,3],
-                                sod=res[[i]][,5],
-                                par=list(png_width=1200,png_height=1200,undef=undef,probs=c(0.01, 0.25, 0.5, 0.75, 0.99),sig2o=c(1, 10)))
-    #
-    ffout <- file.path( dir_out, paste0("synsct_rr_res_map_l",argv$rr_lscale,"_b",bstr,"_th",th,"_sod",sod,"_pGE",argv$pGE,"_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".png"))
-    png( file=ffout, width=1200, height=1200)
-    aux <- res[[i]][,1] == 1 & !is.na(res[[i]][,2]) 
-    ia <- which( aux & res[[i]][,15] == 1 & res[[i]][,2] == 1)
-    ib <- which( aux & res[[i]][,15] == 0 & res[[i]][,2] == 1)
-    ic <- which( aux & res[[i]][,15] == 1 & res[[i]][,2] == 0)
-    id <- which( aux & res[[i]][,15] == 0 & res[[i]][,2] == 0)
-    n <- length(which(aux))
-    par ( mar = c( 1, 1, 1, 1))
-#    plot( obsnet$x, obsnet$y, pch=21, col="white", bg="white", xlab="", ylab="", axes=F)
-    dat<-t(data[,,1])
-    r[]<-dat
-    image(r, breaks=c(0,0.1,2,4,8,16,32,64,128,256,512), col=c("gray",rev(rainbow(9))), axes=F)
-    points( obsnet$x[id], obsnet$y[id], pch=21, bg= "green", cex=2)
-    points( obsnet$x[ia], obsnet$y[ia], pch=21, bg= "gold", cex=2)
-    points( obsnet$x[ic], obsnet$y[ic], pch=21, bg= "cornflowerblue", cex=2)
-    points( obsnet$x[ib], obsnet$y[ib], pch=21, bg= "pink", cex=2)
-    lines(c(xmin+10000,xmin+60000),c(ymin+10000,ymin+10000),lwd=8)
-    lines(c(xmin+10000,xmin+10000),c(ymin+10000,ymin+60000),lwd=8)
-    legend( x="topleft", pch=c(21,21,21,21), pt.bg=c("gold","pink","cornflowerblue","green"), cex=2.5,
-            legend=c("hits(T1/F1)","falsePos(0/1)","misses(1/0)","corrNeg(0/0)"))
-    dev.off()
-    cat(paste("  written file",ffout,"\n"))
+  ffin <- file.path( dir_in, paste0("synsct_rr_res_l",argv$rr_lscale,"_b",bstr,"_th",th,"_pGE",argv$pGE,"_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".dat"))
+  print( ffin)
+  if ( !file.exists( ffin)) next
+  i <- i+1
+  res[[i]] <- read_sctRes( file=ffin)
+  vth[i] <- th
+  if ( i == 1) {
+    ffin00 <- file.path( dir_in, paste0("synsct_rr_res_l",argv$rr_lscale,"_b",bstr,"_th",th,"_pGE00_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".dat"))
+    auxres <- read_sctRes( file=ffin00)
   }
+  #
+  undef<-(-999)
+  ix <- which( res[[i]][,2] != undef)
+  if ( length(ix) > 0) vscore[i] <- score_fun( x=res[[i]][ix,2], x_ref=res[[i]][ix,4], lab=score, threshold=.9, threshold1=.9, type="above") 
 }
 #
-# score as a function of sct-threshold
+#------------------------------------------------------------------------------
 ffout <- file.path( dir_out, paste0("synsct_rr_res_",score,"vsth_l",argv$rr_lscale,"_b",bstr,"_pGE",argv$pGE,"_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".png"))
-usod <- unique(vsod)
-col <- rev(rainbow(length(usod)))
+png( file=ffout, width=800, height=800)
+par(mar=c(4,4,4,1))
+plot( as.numeric(vth), vscore, xlab="",ylab="", main="", axes=F, ylim=ylim)
+lines(vth,vscore,col="red",lwd=3)
+points( as.numeric(vth), vscore, pch=21, bg="pink",cex=2)
+abline(h=0)
+#legend(x="topright",lty=1,col=c("white",col),legend=c("sod",usod),cex=2,lwd=6)
+axis(1,cex.axis=1.5)
+axis(2,cex.axis=1.5)
+mtext(1,text="SCT threshold",line=3, cex=2)
+mtext(2,text=score_lab,line=2, cex=2)
+mtext(3,text=paste("l=",argv$rr_lscale," b=",argv$boxcox_lambda," pGE=",argv$pGE," sel=",argv$thinobs_perc," n=",argv$synsct_rr_nens),line=2, cex=2)
+box()
+devnull <- dev.off()
+cat(paste("  written file",ffout,"\n"))
+q()
+#
+# score as a function of sct-threshold
 print(vth)
 png( file=ffout, width=800, height=800)
 par(mar=c(4,4,4,1))
 plot( as.numeric(vth), vscore, xlab="",ylab="", main="", axes=F, ylim=ylim)
-for (s in 1:length(usod)) {
-  ix<-which(vsod==usod[s])
   lines(vth[ix],vscore[ix],col=col[s],lwd=3)
 #  lines(vth[ix],vscore_d[ix],col=col[s],lwd=3,lty=2)
 #  lines(vth[ix],vscore_m[ix],col=col[s],lwd=3,lty=2)
 #  lines(vth[ix],vscore_v[ix],col=col[s],lwd=3,lty=2)
   polygon( c(vth[ix],vth[ix[length(ix):1]]), c(vscore_v[ix],vscore_d[ix[length(ix):1]]), col=col[s], density=20)
-}
 points( as.numeric(vth), vscore, pch=21, bg="darkgray",cex=2)
 abline(h=0)
 legend(x="topright",lty=1,col=c("white",col),legend=c("sod",usod),cex=2,lwd=6)

@@ -8,9 +8,20 @@ read_sctRes <- function( conn=NA, file, ens=NA, open=T, close=T) {
 #   1 ensemble member
 #   2 dqc flag
 #   3 score
-#   4 true dqc flag
-#   5 obs transf
-#   6 obs
+#   4 rep
+#   5 sod
+#   6 num_inner
+#   7 horizontal_scale
+#   8 an_inc
+#   9 an_res
+#  10 cv_res
+#  11 innov
+#  12 idi
+#  13 idiv
+#  14 sig2o
+#  15 true dqc flag
+#  16 obs transf
+#  17 obs
 
   if (  open | is.na(conn)) conn <- file(file, "rb")
   flag <- F

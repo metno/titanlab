@@ -110,7 +110,6 @@ background_values <- 0
 # from the command line
 tpos_score <- rep( argv$tpos_score, obsnet$n)
 tneg_score <- rep( argv$tneg_score, obsnet$n)
-t_sod <- rep( argv$t_sod, obsnet$n)
 eps2 <- rep( argv$eps2, obsnet$n)
 min_horizontal_scale <- argv$inner_radius/10
 max_horizontal_scale <- argv$inner_radius
@@ -125,14 +124,25 @@ for (e in 1:argv$synsct_tg_nens) {
   } else {
     true_flag <- rep(0,obsnet$n)
   }
-  if ( !is.na( argv$boxcox_lambda)) 
-    values <- boxcox( values, argv$boxcox_lambda)
-  # 
+  values <- round(values,1)
+  values_or <- values 
+  values_minok <- values_or-1
+  values_maxok <- values_or+1
+  values_min <- argv$value_min
+  values_max <- argv$value_max
+  values_low <- values_or-20
+  values_up  <- values_or+20
+  #
+  bkg <- rep(background_values,length(obsnet$lat))
   t00<-Sys.time()
-  res <- sct( obsnet$lat, obsnet$lon, obsnet$z, values, obs_to_check, background_values, argv$background_elab_type, argv$num_min, argv$num_max, argv$inner_radius, argv$outer_radius, argv$num_iterations, argv$num_min_prof, argv$min_elev_diff, min_horizontal_scale, max_horizontal_scale, argv$kth_closest_obs_horizontal_scale, argv$vertical_scale, argv$value_min, argv$value_max, argv$sig2o_min, argv$sig2o_max, eps2, tpos_score, tneg_score, t_sod, debug)
+  res<-sct( as.numeric(obsnet$lat), as.numeric(obsnet$lon), as.numeric(obsnet$z), as.numeric(values), as.integer(obs_to_check), as.numeric(bkg), as.character(argv$background_elab_type), as.integer(argv$num_min), as.integer(argv$num_max), as.numeric(argv$inner_radius), as.numeric(argv$outer_radius), as.integer(argv$num_iterations), as.integer(argv$num_min_prof), as.numeric(argv$min_elev_diff), as.numeric(min_horizontal_scale), as.numeric(max_horizontal_scale), as.integer(argv$kth_closest_obs_horizontal_scale), as.numeric(argv$vertical_scale), as.numeric(values_min), as.numeric(values_max), as.numeric(values_low), as.numeric(values_up), as.numeric(values_minok), as.numeric(values_maxok), as.numeric(eps2), as.numeric(tpos_score), as.numeric(tneg_score), debug)
   print(Sys.time()-t00)
   nres <- length(res)
+#  flag  <- res[[1]]
+#  score <- res[[2]]
   res[[nres+1]] <- true_flag
+  res[[nres+2]] <- values 
+  res[[nres+3]] <- values_or 
   if ( flag) {
     res_bak <- res
     for (i in 1:length(res)) {

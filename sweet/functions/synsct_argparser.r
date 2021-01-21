@@ -142,6 +142,11 @@ p<- add_argument(p, "--t_sod_eva",
                  nargs=Inf,
                  default=NA)
 #..............................................................................
+p<- add_argument(p, "--eva_score",
+                 help="evaluation score (pofd,pod,acc,ets)",
+                 type="character",
+                 default=NA)
+#..............................................................................
 p <- add_argument(p, "--gridded_extent",
                   help="xmin xmax ymin ymax",
                   type="numeric",
