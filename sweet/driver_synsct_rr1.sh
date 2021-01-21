@@ -52,8 +52,8 @@ fi
 ffin_fields=/lustre/storeB/users/cristianl/sweet/rr/synrr_l$l\_n$n.nc
 #
 for pGE in 00 10 40; do
-  for t in 01 02 03 04 05; do
-#  for t in 06 07 08 09 10; do
+#  for t in 01 02 03 04 05; do
+  for t in 06 07 08 09 10; do
     tpos_score=$t; tneg_score=$t
     ffout=/lustre/storeB/users/cristianl/sweet/synsct_rr/res/synsct_rr_res_l$l\_b$b\_th$tpos_score\_pGE$pGE\_sel$thinobs_perc\_n$n.dat
     echo "$sct --ffin_fields $ffin_fields --ffin_obs $ffin_obs --ffout $ffout --config_file $ffconf --tpos_score $tpos_score --tneg_score $tneg_score --pGE $pGE --thinobs_perc $thinobs_perc --boxcox_lambda $bxcx"

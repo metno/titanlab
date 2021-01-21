@@ -135,8 +135,8 @@ for (e in 1:nens) {
   dat<-t(data[,,e])
   r[]<-dat
   values <- extract( r, cbind( obsnet$x, obsnet$y))
-  if ( !is.na( argv$pGE)) {
-    nbad <- ceiling( obsnet$n * argv$pGE / 100)
+  if ( !is.na( argv$pGE) & as.numeric(argv$pGE)>0) {
+    nbad <- ceiling( obsnet$n * as.numeric(argv$pGE) / 100)
     true_flag <- rep( 0, obsnet$n)
     ixbad <- sample(1:obsnet$n, nbad)
     true_flag[ixbad] <- rep(1,nbad)
