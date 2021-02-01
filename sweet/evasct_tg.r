@@ -64,7 +64,6 @@ dir_out<-"/home/cristianl/data/sweet/synsct_tg/res_png"
 i<-0
 res<-list()
 vth <- vector()
-vsod <- vector()
 vscore <- vector()
 vscore_in <- vector()
 vscore_d <- vector()
@@ -85,26 +84,26 @@ if ( argv$pGE == "00" ) {
   ylim <- c(0,1)
 }
 for (th in argv$t_score_eva) {
-  for (sod in argv$t_sod_eva) {
-    ffin <- file.path( dir_in,
-             paste0("synsct_tg_res_a",argv$a_vertprof_ix,"_th",th,"_sod",sod,"_pGE",argv$pGE,"_sel",argv$thinobs_perc,"_n",argv$synsct_tg_nens,".dat"))
+  ffin <- file.path( dir_in,
+           paste0("synsct_tg_res_a",argv$a_vertprof_ix,"_th",th,
+                  "_pGE",argv$pGE,"_sel",argv$thinobs_perc,
+                  "_n",argv$synsct_tg_nens,".dat"))
 #    print( ffin)
-    if ( !file.exists( ffin)) next
-    i <- i+1
-    res[[i]] <- read_sctRes( file=ffin)
-    vth[i] <- th
-    vsod[i] <- sod
-    ix <- which( res[[i]][,2] != argv$undef)
-    vscore[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
-    ix <- which( res[[i]][,13] > 0.85 & res[[i]][,2] != argv$undef)
-    if ( length(ix) > 0) vscore_d[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
-    ix <- which( res[[i]][,13] > 0.45 & res[[i]][,13] <= 0.85 & res[[i]][,2] != argv$undef)
-    if ( length(ix) > 0) vscore_m[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
-    ix <- which( res[[i]][,13] <= 0.45 & res[[i]][,2] != argv$undef)
-    if ( length(ix) > 0) vscore_s[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
-    ix <- which( res[[i]][,2] != argv$undef & isin==1)
-    vscore_in[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
-  }
+  if ( !file.exists( ffin)) next
+  i <- i+1
+  res[[i]] <- read_sctRes( file=ffin)
+  vth[i] <- th
+  vsod[i] <- sod
+  ix <- which( res[[i]][,2] != argv$undef)
+  vscore[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
+  ix <- which( res[[i]][,13] > 0.85 & res[[i]][,2] != argv$undef)
+  if ( length(ix) > 0) vscore_d[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
+  ix <- which( res[[i]][,13] > 0.45 & res[[i]][,13] <= 0.85 & res[[i]][,2] != argv$undef)
+  if ( length(ix) > 0) vscore_m[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
+  ix <- which( res[[i]][,13] <= 0.45 & res[[i]][,2] != argv$undef)
+  if ( length(ix) > 0) vscore_s[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
+  ix <- which( res[[i]][,2] != argv$undef & isin==1)
+  vscore_in[i] <- score_fun(x=res[[i]][ix,2], x_ref=res[[i]][ix,15], lab=score, threshold=.9, threshold1=.9, type="above") 
 }
 #
 # score as a function of sct-threshold

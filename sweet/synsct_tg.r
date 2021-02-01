@@ -168,6 +168,52 @@ for (e in 1:argv$synsct_tg_nens) {
   if (!exists("conn_out")) conn_out<-NA
   conn_out <- write_sctRes( conn_out, argv$ffout, res, e, open=(e==1), close=(e==argv$synsct_tg_nens))
   print( paste("------ written",e,"/",argv$synsct_tg_nens,"--------------------------------"))
+  a <- which( true_flag==1 & res[[1]]==1)
+  c <- which( true_flag==1 & res[[1]]==0)
+  b <- which( true_flag==0 & res[[1]]==1)
+  d <- which( true_flag==0 & res[[1]]==0)
+  iso <- which( res[[1]]>1)
+print(res[[1]][iso])
+  png("out.png",width=800,height=800)
+  plot(values_or,obsnet$z)
+  points(values_or[d],obsnet$z[d],pch=21,bg="cornflowerblue")
+  points(values_or[a],obsnet$z[a],pch=21,bg="red")
+  points(values_or[b],obsnet$z[b],pch=21,bg="pink")
+  points(values_or[c],obsnet$z[c],pch=21,bg="cyan")
+  ix<-which(res[[2]]>=0)
+  text(values_or[ix],obsnet$z[ix],round(res[[2]][ix],1),cex=1.5,col="darkred")
+  dev.off()
+  ff<-"/home/cristianl/data/geoinfo/meps_gmted2010_1km_topo_topdown.nc"
+  ex<-as(extent(-340000,-150000,-180000,0),'SpatialPolygons'); crs(ex)<-CRS("+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06")
+  raux<-try(read_dotnc(nc.file=ff,
+                       nc.varname="altitude",
+                       topdown=F,
+                       out.dim=list(ndim=3,
+                                    tpos=3,
+                                    epos=NULL,
+                                    names=c("x","y","time")),
+                       proj4="+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06",
+                       nc.proj4=list(var=NULL,
+                                     att=NULL),
+                       selection=list(t=nc4.getTime(ff,format="%Y%m%d%H%M%S")[1],
+                                      e=NULL,t_format="%Y%m%d%H%M%S")))
+  r <- disaggregate( crop(raux$stack,ex), fact=4,method="bilinear")
+  png("map.png",width=800,height=800)
+  par(mar=c(2,2,0.5,0.5))
+  plot(obsnet$x,obsnet$y,col="white", xlab="",ylab="")
+  col<-gray(seq(0.3,0.9,length=15))
+  image(r,add=T,col=col,breaks=seq(150,2000,length=16))
+  ix<-which(res[[2]]<0)
+  points(obsnet$x[ix],obsnet$y[ix],pch=21,bg="gray",cex=1)
+  points(obsnet$x[d],obsnet$y[d],pch=21,bg="cornflowerblue",cex=1)
+  points(obsnet$x[a],obsnet$y[a],pch=21,bg="red",cex=1)
+  points(obsnet$x[b],obsnet$y[b],pch=21,bg="pink",cex=1)
+  points(obsnet$x[c],obsnet$y[c],pch=21,bg="cyan",cex=1)
+  points(obsnet$x[iso],obsnet$y[iso],pch=23,bg="gray",cex=2)
+  ix<-which(res[[2]]>=0)
+  text(obsnet$x[a],obsnet$y[a],round(res[[2]][a],1),cex=1.5,col="black")
+  text(obsnet$x[c],obsnet$y[c],round(res[[2]][c],1),cex=1.5,col="darkred")
+  dev.off()
 #  png(file=paste0("fig_",formatC(e,flag=0,width=3),".png"),width=800,height=800)
 #  par(mar=c(1,1,1,1))
 #  image(r,breaks=c(0,0.1,1,2,4,8,16,32,64,128,1000),col=c("beige",rev(rainbow(9))),xlab="",ylab="",main="",axes=F)

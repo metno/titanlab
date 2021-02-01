@@ -19,7 +19,7 @@ export R_LIBS=/home/cristianl/Rpackages-centos
 export SWEET_PATH=/home/cristianl/projects/titanlab/sweet
 export R_DEFAULT_PACKAGES="datasets","utils","grDevices","graphics","stats","methods"
 #
-ffsweet=/lustre/storeB/users/cristianl/sweet/synsct_tg/syntg_n41.dat
+ffsweet=/home/cristianl/data/sweet/synsct_tg/syntg_n41.dat
 ffconf=/home/cristianl/projects/titanlab/sweet/etc/synsct_tg.ini
 sct=/home/cristianl/projects/titanlab/sweet/synsct_tg.r
 # sct param
@@ -34,7 +34,7 @@ thinobs_perc=$2
       for t in 02 04 09 16 25; do
         tpos_score=$t; tneg_score=$t
         for t_sod in 02 04 09 16 25; do
-          ffout=/lustre/storeB/users/cristianl/sweet/synsct_tg/res/synsct_tg_res_a$a_vertprof_ix\_th$tpos_score\_sod$t_sod\_pGE$pGE\_sel$thinobs_perc\_n$synsct_tg_nens.dat
+          ffout=/home/cristianl/data/sweet/synsct_tg/res/synsct_tg_res_a$a_vertprof_ix\_th$tpos_score\_sod$t_sod\_pGE$pGE\_sel$thinobs_perc\_n$synsct_tg_nens.dat
           echo "$sct --ffin_sim $ffsweet --ffout $ffout --config_file $ffconf --tpos_score $tpos_score --tneg_score $tneg_score --t_sod $t_sod --pGE $pGE --a_vertprof_ix $a_vertprof_ix --thinobs_perc $thinobs_perc --synsct_tg_nens $synsct_tg_nens"
           $sct --ffin_sim $ffsweet --ffout $ffout --config_file $ffconf --tpos_score $tpos_score --tneg_score $tneg_score --t_sod $t_sod --pGE $pGE --a_vertprof_ix $a_vertprof_ix --thinobs_perc $thinobs_perc --synsct_tg_nens $synsct_tg_nens
           echo "written file "$ffout

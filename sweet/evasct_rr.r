@@ -113,11 +113,12 @@ if ( argv$boxcox_lambda == 0.3) {
 if (argv$eva_score == "pofd") {
   score <- "pofd"
   score_lab <- "POFD"
-  ylim <- c(0,1)
+  ylim <- c(0,0.2)
 } else if (argv$eva_score == "pod") {
   score <- "pod"
   score_lab <- "POD"
   ylim <- c(0,1)
+  if (argv$pGE=="00") q()
 } else if (argv$eva_score == "acc") {
   score <- "acc"
   score_lab <- "ACC"
@@ -126,8 +127,12 @@ if (argv$eva_score == "pofd") {
   score <- "ets"
   score_lab <- "ETS"
   ylim <- c(0,1)
+  if (argv$pGE=="00") q()
 }
 #
+if ( !file.exists( file.path( dir_out, "evasct_rr_res.txt"))) 
+    cat( file=file.path( dir_out, "evasct_rr_res.txt"), append=T,
+         "score;lscale;bstr;th;pGE;thinobs_perc;synsct_rr_nens;values;\n")
 for (th in argv$t_score_eva) {
   ffin <- file.path( dir_in, paste0("synsct_rr_res_l",argv$rr_lscale,"_b",bstr,"_th",th,"_pGE",argv$pGE,"_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".dat"))
   print( ffin)
@@ -142,23 +147,32 @@ for (th in argv$t_score_eva) {
   #
   undef<-(-999)
   ix <- which( res[[i]][,2] != undef)
-  if ( length(ix) > 0) vscore[i] <- score_fun( x=res[[i]][ix,2], x_ref=res[[i]][ix,4], lab=score, threshold=.9, threshold1=.9, type="above") 
+  if ( length(ix) > 0) {
+    vscore[i] <- score_fun( x=res[[i]][ix,2], x_ref=res[[i]][ix,4], lab=score, threshold=.9, threshold1=.9, type="above") 
+    cat( file=file.path( dir_out, "evasct_rr_res.txt"), append=T,
+         paste( score, argv$rr_lscale, bstr, th,
+                argv$pGE, argv$thinobs_perc, 
+                argv$synsct_rr_nens, round( vscore[i],5), sep=";", "\n"))
+  }
 }
 #
 #------------------------------------------------------------------------------
 ffout <- file.path( dir_out, paste0("synsct_rr_res_",score,"vsth_l",argv$rr_lscale,"_b",bstr,"_pGE",argv$pGE,"_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".png"))
 png( file=ffout, width=800, height=800)
-par(mar=c(4,4,4,1))
+par(mar=c(4,4,1,1))
 plot( as.numeric(vth), vscore, xlab="",ylab="", main="", axes=F, ylim=ylim)
-lines(vth,vscore,col="red",lwd=3)
-points( as.numeric(vth), vscore, pch=21, bg="pink",cex=2)
-abline(h=0)
+abline(h=seq(0,1,by=0.05),col="gray",lty=3)
+abline(h=seq(0,1,by=0.1),col="gray",lty=2)
+lines(vth,vscore,col="red",lwd=4)
+points( as.numeric(vth), vscore, pch=21, bg="pink",cex=4)
+abline(h=c(0,1))
 #legend(x="topright",lty=1,col=c("white",col),legend=c("sod",usod),cex=2,lwd=6)
-axis(1,cex.axis=1.5)
-axis(2,cex.axis=1.5)
-mtext(1,text="SCT threshold",line=3, cex=2)
-mtext(2,text=score_lab,line=2, cex=2)
-mtext(3,text=paste("l=",argv$rr_lscale," b=",argv$boxcox_lambda," pGE=",argv$pGE," sel=",argv$thinobs_perc," n=",argv$synsct_rr_nens),line=2, cex=2)
+axis(1,cex.axis=3)
+axis(2,cex.axis=3)
+#mtext(1,text="SCT threshold",line=3, cex=2)
+#mtext(2,text=score_lab,line=2, cex=2)
+#mtext(3,text=paste("l=",argv$rr_lscale," b=",argv$boxcox_lambda," pGE=",argv$pGE," sel=",argv$thinobs_perc," n=",argv$synsct_rr_nens),line=2, cex=2)
+text(y=(ylim[2]-0.05*(ylim[2]-ylim[1])), x=10, paste0("P(GE)=",as.integer(argv$pGE),"%"), cex=4 )
 box()
 devnull <- dev.off()
 cat(paste("  written file",ffout,"\n"))
