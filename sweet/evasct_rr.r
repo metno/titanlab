@@ -113,11 +113,11 @@ if ( argv$boxcox_lambda == 0.3) {
 if (argv$eva_score == "pofd") {
   score <- "pofd"
   score_lab <- "POFD"
-  ylim <- c(0,0.2)
+  ylim <- c(0,0.18)
 } else if (argv$eva_score == "pod") {
   score <- "pod"
   score_lab <- "POD"
-  ylim <- c(0,1)
+  ylim <- c(0,1.03)
   if (argv$pGE=="00") q()
 } else if (argv$eva_score == "acc") {
   score <- "acc"
@@ -126,7 +126,7 @@ if (argv$eva_score == "pofd") {
 } else if (argv$eva_score == "ets") {
   score <- "ets"
   score_lab <- "ETS"
-  ylim <- c(0,1)
+  ylim <- c(0,1.03)
   if (argv$pGE=="00") q()
 }
 #
@@ -160,7 +160,9 @@ for (th in argv$t_score_eva) {
 ffout <- file.path( dir_out, paste0("synsct_rr_res_",score,"vsth_l",argv$rr_lscale,"_b",bstr,"_pGE",argv$pGE,"_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".png"))
 png( file=ffout, width=800, height=800)
 par(mar=c(4,4,1,1))
+par(mgp=c(3,1.8,0))
 plot( as.numeric(vth), vscore, xlab="",ylab="", main="", axes=F, ylim=ylim)
+if (argv$eva_score == "pofd") abline(h=seq(0,1,by=0.01),col="gray",lty=3) 
 abline(h=seq(0,1,by=0.05),col="gray",lty=3)
 abline(h=seq(0,1,by=0.1),col="gray",lty=2)
 lines(vth,vscore,col="red",lwd=4)
@@ -172,87 +174,13 @@ axis(2,cex.axis=3)
 #mtext(1,text="SCT threshold",line=3, cex=2)
 #mtext(2,text=score_lab,line=2, cex=2)
 #mtext(3,text=paste("l=",argv$rr_lscale," b=",argv$boxcox_lambda," pGE=",argv$pGE," sel=",argv$thinobs_perc," n=",argv$synsct_rr_nens),line=2, cex=2)
-text(y=(ylim[2]-0.05*(ylim[2]-ylim[1])), x=10, paste0("P(GE)=",as.integer(argv$pGE),"%"), cex=4 )
-box()
-devnull <- dev.off()
-cat(paste("  written file",ffout,"\n"))
-q()
-#
-# score as a function of sct-threshold
-print(vth)
-png( file=ffout, width=800, height=800)
-par(mar=c(4,4,4,1))
-plot( as.numeric(vth), vscore, xlab="",ylab="", main="", axes=F, ylim=ylim)
-  lines(vth[ix],vscore[ix],col=col[s],lwd=3)
-#  lines(vth[ix],vscore_d[ix],col=col[s],lwd=3,lty=2)
-#  lines(vth[ix],vscore_m[ix],col=col[s],lwd=3,lty=2)
-#  lines(vth[ix],vscore_v[ix],col=col[s],lwd=3,lty=2)
-  polygon( c(vth[ix],vth[ix[length(ix):1]]), c(vscore_v[ix],vscore_d[ix[length(ix):1]]), col=col[s], density=20)
-points( as.numeric(vth), vscore, pch=21, bg="darkgray",cex=2)
-abline(h=0)
-legend(x="topright",lty=1,col=c("white",col),legend=c("sod",usod),cex=2,lwd=6)
-axis(1,cex.axis=1.5)
-axis(2,cex.axis=1.5)
-mtext(1,text="SCT threshold",line=3, cex=2)
-mtext(2,text=score_lab,line=2, cex=2)
-mtext(3,text=paste("l=",argv$rr_lscale," b=",argv$boxcox_lambda," pGE=",argv$pGE," sel=",argv$thinobs_perc," n=",argv$synsct_rr_nens),line=2, cex=2)
-box()
-devnull <- dev.off()
-cat(paste("  written file",ffout,"\n"))
-#
-# score as a function of sct-threshold and intensity
-ffout <- file.path( dir_out, paste0("synsct_rr_res_",score,"vsthint_l",argv$rr_lscale,"_b",bstr,"_pGE",argv$pGE,"_sel",argv$thinobs_perc,"_n",argv$synsct_rr_nens,".png"))
-usod <- unique(vsod)
-col <- rev(rainbow(length(usod)))
-print(vth)
-png( file=ffout, width=800, height=800)
-par(mar=c(4,4,4,1))
-plot( as.numeric(vth), vscore_s, xlab="",ylab="", main="", axes=F, ylim=ylim)
-for (s in 1:length(usod)) {
-  ix<-which(vsod==usod[s])
-  lines(vth[ix],vscore_xl[ix],col=col[s],lwd=3)
-#  lines(vth[ix],vscore_l[ix],col=col[s],lwd=3)
-#  lines(vth[ix],vscore_m[ix],col=col[s],lwd=3)
-#  lines(vth[ix],vscore_s[ix],col=col[s],lwd=3)
-#  polygon( c(vth[ix],vth[ix[length(ix):1]]), c(vscore_v[ix],vscore_d[ix[length(ix):1]]), col=col[s], density=20)
+text(y=(ylim[2]-0.0*(ylim[2]-ylim[1])), x=10, paste0("P(GE)=",as.integer(argv$pGE),"%"), cex=4 )
+if (argv$eva_score == "pofd") {
+  text(y=(ylim[2]-0.0*(ylim[2]-ylim[1])), x=1.5, score_lab, col="darkgray", cex=3 )
+} else {
+  text(y=(ylim[2]-0.0*(ylim[2]-ylim[1])), x=1.3, score_lab, col="darkgray", cex=3 )
 }
-points( as.numeric(vth), vscore_s, pch=21, bg="darkgray",cex=2)
-abline(h=0)
-legend(x="topright",lty=1,col=c("white",col),legend=c("sod",usod),cex=2,lwd=6)
-axis(1,cex.axis=1.5)
-axis(2,cex.axis=1.5)
-mtext(1,text="SCT threshold",line=3, cex=2)
-mtext(2,text=score_lab,line=2, cex=2)
-mtext(3,text=paste("l=",argv$rr_lscale," b=",argv$boxcox_lambda," pGE=",argv$pGE," sel=",argv$thinobs_perc," n=",argv$synsct_rr_nens),line=2, cex=2)
 box()
 devnull <- dev.off()
 cat(paste("  written file",ffout,"\n"))
-#
-# score as a function of sct-threshold
-usod <- unique(vsod)
-col <- rev(rainbow(length(usod)))
-print(vth)
-png( file=ffout, width=800, height=800)
-par(mar=c(4,4,4,1))
-plot( as.numeric(vth), vscore_s, xlab="",ylab="", main="", axes=F, ylim=ylim)
-for (s in 1:length(usod)) {
-  ix<-which(vsod==usod[s])
-  lines(vth[ix],vscore_xl[ix],col=col[s],lwd=3)
-#  lines(vth[ix],vscore_l[ix],col=col[s],lwd=3)
-#  lines(vth[ix],vscore_m[ix],col=col[s],lwd=3)
-#  lines(vth[ix],vscore_s[ix],col=col[s],lwd=3)
-#  polygon( c(vth[ix],vth[ix[length(ix):1]]), c(vscore_v[ix],vscore_d[ix[length(ix):1]]), col=col[s], density=20)
-}
-points( as.numeric(vth), vscore_s, pch=21, bg="darkgray",cex=2)
-abline(h=0)
-legend(x="topright",lty=1,col=c("white",col),legend=c("sod",usod),cex=2,lwd=6)
-axis(1,cex.axis=1.5)
-axis(2,cex.axis=1.5)
-mtext(1,text="SCT threshold",line=3, cex=2)
-mtext(2,text=score_lab,line=2, cex=2)
-mtext(3,text=paste("l=",argv$rr_lscale," b=",argv$boxcox_lambda," pGE=",argv$pGE," sel=",argv$thinobs_perc," n=",argv$synsct_rr_nens),line=2, cex=2)
-box()
-devnull <- dev.off()
-cat(paste("  written file",ffout,"\n"))
-#
 q()

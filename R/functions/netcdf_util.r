@@ -504,9 +504,12 @@ get_data_from_ncfile<-function(nc.file,
                                xy_as_var.dim=NA,
                                xy_as_var.dh_max=NA,
                                return_raster=F,
+                               return_obsloc=T,
+                               extent=NA,
                                debug.file=NA,
                                nc.dqc_mode="none") { #"radar_hourly"
 #------------------------------------------------------------------------------
+  val <- NA
   if (var.dim$ndim==2) { var.dim$tpos<-NULL; var.dim$epos<-NULL }
   if (is.null(var.dim$tpos)) {
     nc.t<-NULL
@@ -548,13 +551,13 @@ get_data_from_ncfile<-function(nc.file,
     if (is.null(raux)) boom(paste("ERROR while reading \"var\" from file:",argv$nc.file))
     r<-raster(raux$stack,"layer.2")-raster(raux$stack,"layer.1")
   } else {
-    raux<-try(nc4in(nc.file=nc.file,
-                    nc.varname=nc.varname,
-                    topdown=topdown,
-                    out.dim=var.dim,
-                    proj4=proj4,
-                    nc.proj4=proj4_from_nc,
-                    selection=list(t=nc.t,e=nc.e)))
+    raux <- try( nc4in( nc.file=nc.file,
+                        nc.varname=nc.varname,
+                        topdown=topdown,
+                        out.dim=var.dim,
+                        proj4=proj4,
+                        nc.proj4=proj4_from_nc,
+                        selection=list(t=nc.t,e=nc.e)))
     r<-raux$stack
   }
   rm(raux)
@@ -712,13 +715,24 @@ get_data_from_ncfile<-function(nc.file,
                          proj4string=CRS(argv$proj4_input_obsfiles))
     coord.new<-spTransform(coord,CRS(proj4_nc))
     xy.tmp<-coordinates(coord.new)
-    val<-extract(r,xy.tmp)
+    if ( return_obsloc) val<-extract(r,xy.tmp)
     rm(coord,coord.new,xy.tmp)
   } else {
-    val<-extract(r,cbind(x,y))
+    if ( return_obsloc) val<-extract(r,cbind(x,y))
   }
   if (!is.na(debug.file)) save(r,val,file=debug.file)
   if (return_raster) {
+    if ( !any( is.na(extent))) {
+      coord <- SpatialPoints( cbind( c( extent[1], extent[1], extent[2], extent[2]),
+                                     c( extent[3], extent[4], extent[3], extent[4])),
+                           proj4string=CRS("+proj=longlat +datum=WGS84"))
+      coord.new<-spTransform(coord,CRS(proj4_nc))
+      xy.tmp<-coordinates(coord.new)
+      extentxy <- as( extent( min(xy.tmp[,1]), max(xy.tmp[,1]), 
+                              min(xy.tmp[,2]), max(xy.tmp[,2])), 'SpatialPolygons')
+      crs( extentxy) <- crs(r) 
+      r <- crop( r, extentxy)
+    }
     return(list(raster=r,values=val))
   } else {
     return(val)

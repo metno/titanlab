@@ -11,7 +11,7 @@ read_laf <- function( argv) {
     proj4laf_from_nc<-list(var=argv$laf.proj4_var, att=argv$laf.proj4_att)
   }
 
-  if (argv$verbose) print("read land area fraction")
+  if (argv$verbose) cat("read land area fraction\n")
   debug.file<-ifelse(argv$debug, file.path(argv$debug.dir,"lafnc.RData"), NA)
   laf<-get_data_from_ncfile(nc.file=argv$laf.file,
                             nc.varname=argv$laf.varname,
@@ -36,7 +36,7 @@ read_laf <- function( argv) {
   laf<-laf/100
   if (any(is.na(laf))) laf[which(is.na(laf))]<-1
   if (argv$debug) save.image(file.path(argv$debug.dir,"input_data_laf.RData")) 
-  if (argv$verbose) print("+---------------------------------+")
+  if (argv$verbose) cat("+---------------------------------+\n")
   #
   return( laf)
 }

@@ -136,67 +136,68 @@ for (e in 1:argv$synsct_tg_nens) {
   #
   bkg <- rep(background_values,length(obsnet$lat))
   t00<-Sys.time()
-  res<-sct( as.numeric(obsnet$lat), as.numeric(obsnet$lon), as.numeric(obsnet$z), as.numeric(values), as.integer(obs_to_check), as.numeric(bkg), as.character(argv$background_elab_type), as.integer(argv$num_min), as.integer(argv$num_max), as.numeric(argv$inner_radius), as.numeric(argv$outer_radius), as.integer(argv$num_iterations), as.integer(argv$num_min_prof), as.numeric(argv$min_elev_diff), as.numeric(min_horizontal_scale), as.numeric(max_horizontal_scale), as.integer(argv$kth_closest_obs_horizontal_scale), as.numeric(argv$vertical_scale), as.numeric(values_min), as.numeric(values_max), as.numeric(values_low), as.numeric(values_up), as.numeric(values_minok), as.numeric(values_maxok), as.numeric(eps2), as.numeric(tpos_score), as.numeric(tneg_score), debug)
-  print(Sys.time()-t00)
-  nres <- length(res)
+#  res<-sct( as.numeric(obsnet$lat), as.numeric(obsnet$lon), as.numeric(obsnet$z), as.numeric(values), as.integer(obs_to_check), as.numeric(bkg), as.character(argv$background_elab_type), as.integer(argv$num_min), as.integer(argv$num_max), as.numeric(argv$inner_radius), as.numeric(argv$outer_radius), as.integer(argv$num_iterations), as.integer(argv$num_min_prof), as.numeric(argv$min_elev_diff), as.numeric(min_horizontal_scale), as.numeric(max_horizontal_scale), as.integer(argv$kth_closest_obs_horizontal_scale), as.numeric(argv$vertical_scale), as.numeric(values_min), as.numeric(values_max), as.numeric(values_low), as.numeric(values_up), as.numeric(values_minok), as.numeric(values_maxok), as.numeric(eps2), as.numeric(tpos_score), as.numeric(tneg_score), debug)
+#  print(Sys.time()-t00)
+#  nres <- length(res)
 #  flag  <- res[[1]]
 #  score <- res[[2]]
-  res[[nres+1]] <- true_flag
-  res[[nres+2]] <- values 
-  res[[nres+3]] <- values_or 
-  if ( flag) {
-    res_bak <- res
-    for (i in 1:length(res)) {
-      res[[i]] <- vector(mode="numeric", length=obsnet_or$n)
-      res[[i]][] <- argv$undef
-      res[[i]][ixkeep] <- res_bak[[i]]
-    }
-    true_flag <- res[[nres+1]]
-  } 
+#  res[[nres+1]] <- true_flag
+#  res[[nres+2]] <- values 
+#  res[[nres+3]] <- values_or 
+#  if ( flag) {
+#    res_bak <- res
+#    for (i in 1:length(res)) {
+#      res[[i]] <- vector(mode="numeric", length=obsnet_or$n)
+#      res[[i]][] <- argv$undef
+#      res[[i]][ixkeep] <- res_bak[[i]]
+#    }
+#    true_flag <- res[[nres+1]]
+#  } 
+#  #
+#  a <- length( which( true_flag==1 & res[[1]]==1))
+#  c <- length( which( true_flag==1 & res[[1]]==0))
+#  b <- length( which( true_flag==0 & res[[1]]==1))
+#  d <- length( which( true_flag==0 & res[[1]]==0))
+#  r <- (a+c) * (a+b) / (a+b+c+d)
+#  ets <- (a-r) / (a+b+c-r)
+#  acc <- (a+d)/(a+b+c+d)
+#  pod <- a/(a+c)
+#  pofa <- b/(b+d)
+#  print( paste("a(bad) b c d", a,"(",length(which( true_flag==1)),")", b, c, d, a+b+c+d))
+#  print( paste("acc pod pofa ets", round(acc,2), round(pod,2), round(pofa,2), round(ets,2)))
   #
-  a <- length( which( true_flag==1 & res[[1]]==1))
-  c <- length( which( true_flag==1 & res[[1]]==0))
-  b <- length( which( true_flag==0 & res[[1]]==1))
-  d <- length( which( true_flag==0 & res[[1]]==0))
-  r <- (a+c) * (a+b) / (a+b+c+d)
-  ets <- (a-r) / (a+b+c-r)
-  acc <- (a+d)/(a+b+c+d)
-  pod <- a/(a+c)
-  pofa <- b/(b+d)
-  print( paste("a(bad) b c d", a,"(",length(which( true_flag==1)),")", b, c, d, a+b+c+d))
-  print( paste("acc pod pofa ets", round(acc,2), round(pod,2), round(pofa,2), round(ets,2)))
-  #
-  if (!exists("conn_out")) conn_out<-NA
+#  if (!exists("conn_out")) conn_out<-NA
 #  conn_out <- write_sctRes( conn_out, argv$ffout, res, e, open=(e==1), close=(e==argv$synsct_tg_nens))
-  print( paste("------ written",e,"/",argv$synsct_tg_nens,"--------------------------------"))
-  a <- which( true_flag==1 & res[[1]]==1)
-  c <- which( true_flag==1 & res[[1]]==0)
-  b <- which( true_flag==0 & res[[1]]==1)
-  d <- which( true_flag==0 & res[[1]]==0)
-  iso <- which( res[[1]]>1)
-print(res[[1]][iso])
+#  print( paste("------ written",e,"/",argv$synsct_tg_nens,"--------------------------------"))
+#  a <- which( true_flag==1 & res[[1]]==1)
+#  c <- which( true_flag==1 & res[[1]]==0)
+#  b <- which( true_flag==0 & res[[1]]==1)
+#  d <- which( true_flag==0 & res[[1]]==0)
+#  iso <- which( res[[1]]>1)
+#print(res[[1]][iso])
   png("out.png",width=800,height=800)
   par(mar=c(5,5,1,1))
-  plot(values_or,obsnet$z,xlim=c(-5,35),axes=F,xlab="",ylab="")
+  plot(values_or,obsnet$z,xlim=c(-5,38),axes=F,xlab="",ylab="")
   for (i in seq(-20,50,by=5)) lines(i-0.0065*0:2000,0:2000,lty=2,col="darkgray")
   abline(h=seq(0,2000,by=200),lty=2,col="darkgray")
   points(values_or,obsnet$z,pch=21,bg="darkgray",cex=2)
   points(values_or[obsnet$isin==1],obsnet$z[obsnet$isin==1],pch=21,bg="darkblue",cex=3)
-  dat <- read_sweetT( file=argv$ffin_sim, only_meta=T, close=F)
-  conn_in <- dat$conn
-  datin <- read_sweetT( conn=conn_in, open=F, close=T, ens=1)
-  values_or <- datin$res_tot[ixkeep]
-  points(values_or[obsnet$isin==1],obsnet$z[obsnet$isin==1],pch=21,bg="red",cex=3)
-  dat <- read_sweetT( file=argv$ffin_sim, only_meta=T, close=F)
-  conn_in <- dat$conn
-  datin <- read_sweetT( conn=conn_in, open=F, close=T, ens=15)
-  values_or <- datin$res_tot[ixkeep]
-  points(values_or[obsnet$isin==1],obsnet$z[obsnet$isin==1],pch=21,bg="pink",cex=3)
-  dat <- read_sweetT( file=argv$ffin_sim, only_meta=T, close=F)
-  conn_in <- dat$conn
-  datin <- read_sweetT( conn=conn_in, open=F, close=T, ens=31)
-  values_or <- datin$res_tot[ixkeep]
-  points(values_or[obsnet$isin==1],obsnet$z[obsnet$isin==1],pch=21,bg="cornflowerblue",cex=3)
+  for (ii in c(21,1,41,5,35,10,30,15,25)) {
+    if (ii==1)  {bg<-"darkred"}
+    if (ii==5)  {bg<-"red"}
+    if (ii==10) {bg<-"coral"}
+    if (ii==15) {bg<-"pink"}
+    if (ii==21) {bg<-"gray";next}
+    if (ii==25) {bg<-"cadetblue2"}
+    if (ii==30) {bg<-"cornflowerblue"}
+    if (ii==35) {bg<-"blue"}
+    if (ii==41) {bg<-"darkblue"}
+    dat <- read_sweetT( file=argv$ffin_sim, only_meta=T, close=F)
+    conn_in <- dat$conn
+    datin <- read_sweetT( conn=conn_in, open=F, close=T, ens=ii)
+    values_or <- datin$res_tot[ixkeep]
+    points(values_or[obsnet$isin==1],obsnet$z[obsnet$isin==1],pch=21,bg=bg,col=bg,cex=3)
+  }
   box()
   axis(1,cex.axis=2)
   mtext(side=1,text="Temperature [degC]",line=3,cex=2)
@@ -209,6 +210,7 @@ print(res[[1]][iso])
 #  ix<-which(res[[2]]>=0)
 #  text(values_or[ix],obsnet$z[ix],round(res[[2]][ix],1),cex=1.5,col="darkred")
   dev.off()
+q()
   ff<-"/home/cristianl/data/geoinfo/meps_gmted2010_1km_topo_topdown.nc"
   ex<-as(extent(-340000,-150000,-180000,0),'SpatialPolygons'); crs(ex)<-CRS("+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06")
   raux<-try(read_dotnc(nc.file=ff,

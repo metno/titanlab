@@ -2,8 +2,10 @@
 plausibility_test <- function( argv, data, dqcflag){
 # use range_check from titanlib
 #==============================================================================
-  if ( length( ix <- which( (is.na(dqcflag) | dqcflag==argv$keep.code) & 
-       range_check( values=data$value, min=argv$vmin, max=argv$vmax)[[2]]))>0) 
+  if ( length( ix <- which( ( is.na(dqcflag) | dqcflag==argv$keep.code) & 
+                              range_check( as.numeric( data$value), 
+                                           as.numeric(  argv$vmin),
+                                           as.numeric(  argv$vmax))) == 1) > 0) 
     dqcflag[ix]<-argv$p.code
   # verbose
   cat(paste("plausibility test (",argv$p.code,")\n"))

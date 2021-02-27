@@ -1,9 +1,9 @@
 #+ check on the metadata
-metadata_check <- function( argv, 
-                            data, 
-                            z,
-                            extent, 
-                            dqcflag) {
+metadata_check_r <- function( argv, 
+                              data, 
+                              z,
+                              extent, 
+                              dqcflag) {
 #==============================================================================
 # input arguments:
 # argv. list with the input arguments (command line and/or config file)
@@ -16,20 +16,21 @@ metadata_check <- function( argv,
 # dqcflag. updated data quality control flags.
 #==============================================================================
 # NOTE: keep-listed stations could be flagged here
-  ix<-which(is.na(dqcflag) | dqcflag==argv$keep.code)
-  if (length(ix)>0) {
-    meta<-is.na(data$lat[ix]) | 
-          is.na(data$lon[ix]) |
-          is.na(z[ix]) | 
-          z[ix]<argv$zmin | 
-          z[ix]>argv$zmax |
-          is.na(data$value[ix]) 
-    if (argv$dqc_inbox_only) 
-      meta<- meta | ( data$lat[ix] < extent[3] | 
-                      data$lat[ix] > extent[4] |
-                      data$lon[ix] < extent[1] | 
-                      data$lon[ix] > extent[2] )
-    if (any(meta)) dqcflag[ix[which(meta)]]<-argv$nometa.code
+print("b")
+  ix <- which( is.na( dqcflag) | dqcflag == argv$keep.code)
+  if ( length( ix) > 0) {
+    meta <- is.na( data$lat[ix]) | 
+            is.na( data$lon[ix]) |
+            is.na( z[ix]) | 
+            z[ix] < argv$zmin | 
+            z[ix] > argv$zmax |
+            is.na( data$value[ix]) 
+    if ( argv$dqc_inbox_only) 
+      meta <- meta | ( data$lat[ix] < extent[3] | 
+                       data$lat[ix] > extent[4] |
+                       data$lon[ix] < extent[1] | 
+                       data$lon[ix] > extent[2] )
+    if ( any( meta)) dqcflag[ix[which(meta)]] <- argv$nometa.code
   } else {
     print("no valid observations left, no metadata check")
   }

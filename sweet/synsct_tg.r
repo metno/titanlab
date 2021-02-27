@@ -99,7 +99,7 @@ if ( !is.na( argv$thinobs_perc)) {
 # read values
 #values <- read_sweetT( conn=conn_in, open=T, close=T, ens=argv$a_vertprof_ix)$res_tot
 datin <- read_sweetT( conn=conn_in, open=F, close=T, ens=argv$a_vertprof_ix)
-values_or <- datin$res_tot[ixkeep]
+data <- datin$res_tot[ixkeep]
 #
 #------------------------------------------------------------------------------
 # SCT - Loop over fields
@@ -114,7 +114,7 @@ eps2 <- rep( argv$eps2, obsnet$n)
 min_horizontal_scale <- argv$inner_radius/10
 max_horizontal_scale <- argv$inner_radius
 for (e in 1:argv$synsct_tg_nens) {
-  values <- values_or
+  values <- data
   if ( !is.na( argv$pGE)) {
     nbad <- ceiling( obsnet$n * argv$pGE / 100)
     true_flag <- rep( 0, obsnet$n)
@@ -125,13 +125,12 @@ for (e in 1:argv$synsct_tg_nens) {
     true_flag <- rep(0,obsnet$n)
   }
   values <- round(values,1)
-  values_or <- values 
-  values_minok <- values_or-1
-  values_maxok <- values_or+1
+  values_minok <- values-1
+  values_maxok <- values+1
   values_min <- argv$value_min
   values_max <- argv$value_max
-  values_low <- values_or-20
-  values_up  <- values_or+20
+  values_low <- values-20
+  values_up  <- values+20
   #
   bkg <- rep(background_values,length(obsnet$lat))
   t00<-Sys.time()
@@ -142,7 +141,7 @@ for (e in 1:argv$synsct_tg_nens) {
 #  score <- res[[2]]
   res[[nres+1]] <- true_flag
   res[[nres+2]] <- values 
-  res[[nres+3]] <- values_or 
+  res[[nres+3]] <- data 
   if ( flag) {
     res_bak <- res
     for (i in 1:length(res)) {
@@ -175,13 +174,13 @@ for (e in 1:argv$synsct_tg_nens) {
   iso <- which( res[[1]]>1)
 print(res[[1]][iso])
   png("out.png",width=800,height=800)
-  plot(values_or,obsnet$z)
-  points(values_or[d],obsnet$z[d],pch=21,bg="cornflowerblue")
-  points(values_or[a],obsnet$z[a],pch=21,bg="red")
-  points(values_or[b],obsnet$z[b],pch=21,bg="pink")
-  points(values_or[c],obsnet$z[c],pch=21,bg="cyan")
+  plot(values,obsnet$z)
+  points(values[d],obsnet$z[d],pch=21,bg="cornflowerblue")
+  points(values[a],obsnet$z[a],pch=21,bg="red")
+  points(values[b],obsnet$z[b],pch=21,bg="pink")
+  points(values[c],obsnet$z[c],pch=21,bg="cyan")
   ix<-which(res[[2]]>=0)
-  text(values_or[ix],obsnet$z[ix],round(res[[2]][ix],1),cex=1.5,col="darkred")
+  text(values[ix],obsnet$z[ix],round(res[[2]][ix],1),cex=1.5,col="darkred")
   dev.off()
   ff<-"/home/cristianl/data/geoinfo/meps_gmted2010_1km_topo_topdown.nc"
   ex<-as(extent(-340000,-150000,-180000,0),'SpatialPolygons'); crs(ex)<-CRS("+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e+06")

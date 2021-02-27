@@ -51,8 +51,8 @@ read_dem <- function( argv,
     z[iz]<-zdem[iz]
     dqcflag[iz]<-dqcflag.bak[iz]
     if (argv$verbose) {
-      print(paste("# stations with elevation derived from DEM=",length(iz)))
-      print("+---------------------------------+")
+      cat(paste("# stations with elevation derived from DEM=",length(iz),"\n"))
+      cat("+---------------------------------+\n")
     }
     rm(iz)
   }  
