@@ -1,22 +1,34 @@
-  p <- add_argument(p, "--output.file",
-                    help="output file",
-                    type="character",
-                    default="output.txt")
-  # configuration file
-  p <- add_argument(p, "--config.file",
-                    help="configuration file",
-                    type="character",
-                    default=NULL,
-                    short="cf")
-  #.............................................................................. 
-  neg.str<-"Negative values can be specified in either one of these two ways: (1) by using the corresponding \"...neg...\" command line argument; (2) negative values start with \"_\" (e.g. _2=-2)"
   # ADDITIONAL input files / providers
   p <- add_argument(p, "--input.files",
                     help="input files (provider 1 provider2 provider3 ...)",
                     type="character",
                     default=NULL,
-                    nargs=Inf,
-                    short="-i")
+                    nargs=Inf)
+
+  p <- add_argument(p, "--output.file",
+                    help="output file",
+                    type="character",
+                    default="output.txt")
+
+  # configuration file
+  p <- add_argument(p, "--config.files",
+                    help="configuration file(s) (use conf <- list( var1=..., var2=..., ... )",
+                    type="character",
+                    default=NULL,
+                    nargs=Inf)
+  #
+  # first-guess configuration files
+  p <- add_argument(p, "--fg.files",
+                    help="information used to read first-guesses nc-file(s) (use conf <- list( var1=..., var2=..., ... )",
+                    type="character",
+                    default=NULL,
+                    nargs=Inf)
+
+  #.............................................................................. 
+
+  #.............................................................................. 
+  neg.str<-"Negative values can be specified in either one of these two ways: (1) by using the corresponding \"...neg...\" command line argument; (2) negative values start with \"_\" (e.g. _2=-2)"
+  # ADDITIONAL input files / providers
   p <- add_argument(p, "--prid",
                     help="provider identifiers (provider1 provider2 provider3 ...)",
                     type="character",

@@ -81,38 +81,60 @@ argparser <- function() {
   #.............................................................................. 
   # first-guess or background file / ensemble
   source( file.path( titan_fun_path, "argparser_fgt_ens.r"), local=T)
+
   #.............................................................................. 
   # PARSE arguments
   argv <- parse_args(p)
+
   #
   #-----------------------------------------------------------------------------
-  # read configuration file
+  # read configuration files
 
-  if ( !is.na( argv$config.file)) {
-    if ( file.exists( argv$config.file)) {
-      source( argv$config.file)
-      argv_tmp       <- append( argv, conf)
-      names_argv_tmp <- names( argv_tmp)
-      argv_def       <- list()
-      names_argv_def <- integer(0)
-      k <- 0
-      for (i in 1:length(argv_tmp)) {
-        if (names_argv_tmp[i] %in% names_argv_def) next
-        k <- k + 1
-        j <- which( names_argv_tmp == names_argv_tmp[i])
-        argv_def[[k]]  <- argv_tmp[[j[length(j)]]]
-        names_argv_def <- c( names_argv_def, names_argv_tmp[i])
+  if ( any( !is.na( argv$config.files))) {
+    for (f in 1:length(argv$config.files)) {
+      if ( file.exists( argv$config.files[f])) {
+        source( argv$config.files[f], local=T)
+        argv_tmp       <- append( argv, conf)
+        names_argv_tmp <- names( argv_tmp)
+        argv_def       <- list()
+        names_argv_def <- integer(0)
+        k <- 0
+        for (i in 1:length(argv_tmp)) {
+          if (names_argv_tmp[i] %in% names_argv_def) next
+          k <- k + 1
+          j <- which( names_argv_tmp == names_argv_tmp[i])
+          argv_def[[k]]  <- argv_tmp[[j[length(j)]]]
+          names_argv_def <- c( names_argv_def, names_argv_tmp[i])
+        }
+        names( argv_def) <- names_argv_def
+        rm( argv, argv_tmp, names_argv_tmp, names_argv_def)
+        argv <- argv_def
+        rm( argv_def)
+      } else {
+        print( "WARNING: config file not found")
+        print( argv$config.files[f])
       }
-      names( argv_def) <- names_argv_def
-      rm( argv, argv_tmp, names_argv_tmp, names_argv_def)
-      argv <- argv_def
-      rm( argv_def)
-    } else {
-      print( "WARNING: config file not found")
-      print( argv$config.file)
     }
   }
 
+  #
+  #-----------------------------------------------------------------------------
+  # read fg config files
+  if ( any( !is.na( argv$fg.files))) {
+    for (f in 1:length(argv$fg.files)) {
+      if ( file.exists( argv$fg.files[f])) {
+        source( argv$fg.files[f], local=T)
+        fg_env$fg[[f]] <- conf
+        rm( conf)
+      } else {
+        print( "WARNING: config file not found")
+        print( argv$fg.files[f])
+      }
+    }
+  }
+
+  #
+  #-----------------------------------------------------------------------------
   # CHECKS on input arguments
   # more than one input file
   if ( any( !is.na( argv$input.files))) {
