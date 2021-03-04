@@ -217,13 +217,6 @@ if ( !is.na( argv$month.clim))
 
 #
 #-----------------------------------------------------------------------------
-# buddy check (based on the definition of a binary yes/no event)
-#  Define an event compare each observation against the average of neighbouring observations 
-# NOTE: keep-listed stations are used but they canNOT be flagged here
-#if (argv$buddy_eve)
-#  dqcflag <- buddy_eve( argv, ndata, data, dqcflag)
-#
-#-----------------------------------------------------------------------------
 # buddy check 
 #  compare each observation against the neighbouring observations 
 # NOTE: keep-listed stations are used but they canNOT be flagged here
@@ -244,16 +237,17 @@ if (argv$fgt)
 # NOTE: keep-listed stations are used but they canNOT be flagged here
 
 if (argv$sct)
-  dqcflag <- sct_test( argv, ndata, data, dqcflag, x, y, z, laf)
+  dqcflag <- sct_resistant( argv, ndata, data, z, dqcflag)
 
-q()
 #
 #-----------------------------------------------------------------------------
 # SCT - Spatial Consistency Test, using background fields
 # NOTE: keep-listed stations are used but they canNOT be flagged here
 
 if (argv$sct_fg)
-  dqcflag <- sct_fg_test( argv, ndata, data, dqcflag, x, y, z, laf)
+  dqcflag <- sct_fg_resistant( argv, ndata, data,  x, y, z, dqcflag)
+
+q()
 
 #-----------------------------------------------------------------------------
 # cool test (Check fOr hOLes in the field)

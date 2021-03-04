@@ -1,11 +1,11 @@
-#+ check against first-guess fields
-fgt_r <- function( argv, 
-                   ndata, 
-                   data,
-                   x,
-                   y,
-                   z, 
-                   dqcflag) {
+#+ spatial consistency test, using background fields
+sct_fg_resistant <- function( argv, 
+                              ndata, 
+                              data,
+                              x,
+                              y,
+                              z, 
+                              dqcflag) {
 #------------------------------------------------------------------------------
 # aggregation neighbourhoods (aggn) 
 #                      k = argv$num_max_aggn.fg[i], 
@@ -18,43 +18,46 @@ fgt_r <- function( argv,
 
   require(RANN)
 
-  cat( paste0( "fgt (code=", argv$fg.code, ")\n"))
+  cat( paste0( "sct with external first guess (code=", argv$sct_fg.code, ")\n"))
 
   # number of observation providers
   M <- nfin
 
   # number of tests
-  if ( ( N <- length( argv$fgt_fglab.fg)) == 0) return( FALSE)
+  if ( ( N <- length( argv$sct_fglab.sct_fg)) == 0) return( FALSE)
 
   # number of background fields
   if ( ( B <- length( fg_env$fg)) == 0) return( FALSE)
 
+  nsus <- vector( mode="numeric", length=length(argv$sct_fglab.sct_fg))
 
   debug <- FALSE
   background_elab_type <- "External"
   num_min_prof  <- -999
   min_elev_diff <- 1
 
-  if ( is.null( argv$transf.fg)) argv$transf.fg <- F
+  if ( is.null( argv$transf.sct_fg)) argv$transf.sct_fg <- F
 
-  if ( length( argv$doit.fg) != M) 
-    argv$doit.fg <- rep( argv$doit.fg[1], M)
-  if ( length( argv$prio.fg) != M) 
-    argv$prio.fg <- rep( argv$prio.fg[1], M)
+  if ( length( argv$doit.sct_fg) != M) 
+    argv$doit.sct_fg <- rep( argv$doit.sct_fg[1], M)
+  if ( length( argv$prio.sct_fg) != M) 
+    argv$prio.sct_fg <- rep( argv$prio.sct_fg[1], M)
 
-  if ( length( argv$tpos.fg) != (M*N)) 
-    argv$tpos.fg <- rep( argv$tpos.fg[1], N*M)
-  if ( length( argv$tneg.fg) != (M*N))
-    argv$tneg.fg <- rep( argv$tneg.fg[1], N*M)
+  if ( length( argv$tpos.sct_fg) != (M*N)) 
+    argv$tpos.sct_fg <- rep( argv$tpos.sct_fg[1], N*M)
+  if ( length( argv$tneg.sct_fg) != (M*N))
+    argv$tneg.sct_fg <- rep( argv$tneg.sct_fg[1], N*M)
+  if ( length( argv$eps2.sct_fg) != (M*N)) 
+    argv$eps2.sct_fg <- rep( argv$eps2.sct_fg[1], N*M)
 
-  if ( length( argv$num_min_outer.fg) != N)
-    argv$num_min_outer.fg <- rep( argv$num_min_outer.fg[1], N)
-  if ( length( argv$num_max_outer.fg) != N)
-    argv$num_max_outer.fg <- rep( argv$num_max_outer.fg[1], N)
-  if ( length( argv$num_max_aggn.fg) != N) 
-    argv$num_max_aggn.fg <- rep( argv$num_max_aggn.fg[1], N)
-  if ( length( argv$aggn_radius.fg) != N) 
-    argv$aggn_radius.fg <- rep( argv$aggn_radius.fg[1], N)
+  if ( length( argv$num_min_outer.sct_fg) != N)
+    argv$num_min_outer.sct_fg <- rep( argv$num_min_outer.sct_fg[1], N)
+  if ( length( argv$num_max_outer.sct_fg) != N)
+    argv$num_max_outer.sct_fg <- rep( argv$num_max_outer.sct_fg[1], N)
+  if ( length( argv$num_max_aggn.sct_fg) != N) 
+    argv$num_max_aggn.sct_fg <- rep( argv$num_max_aggn.sct_fg[1], N)
+  if ( length( argv$aggn_radius.sct_fg) != N) 
+    argv$aggn_radius.sct_fg <- rep( argv$aggn_radius.sct_fg[1], N)
 
   #............................................................................
   # set doit/prio vectors
@@ -63,8 +66,8 @@ fgt_r <- function( argv,
   for (f in 1:M) {
     ix <- which( data$prid == argv$prid[f])
     if ( length(ix) == 0) next
-    doit[ix] <- argv$doit.fg[f]
-    prio[ix] <- argv$prio.fg[f]
+    doit[ix] <- argv$doit.sct_fg[f]
+    prio[ix] <- argv$prio.sct_fg[f]
   }
   prio_unique <- sort( unique( prio, na.rm=T), decreasing=T)
   rm( ix)
@@ -86,7 +89,7 @@ fgt_r <- function( argv,
   }
 
   # data transformation
-  if (argv$transf.fg) {
+  if (argv$transf.sct_fg) {
     values_mina <- boxcox( x=values_mina, lambda=argv$boxcox.lambda)
     values_maxa <- boxcox( x=values_maxa, lambda=argv$boxcox.lambda)
     values_minv <- boxcox( x=values_minv, lambda=argv$boxcox.lambda)
@@ -105,11 +108,9 @@ fgt_r <- function( argv,
       # prepare for the accumulation of flags
       dqcflag_acc <- rep( 0, ndata)
 
-      if ( ( Bi <- length( ixfglab <- which( argv$fgt_fglab.fg == ifg))) == 0 ) next
+      if ( ( Bi <- length( ixfglab <- which( argv$sct_fglab.sct_fg == ifg))) == 0 ) next
 
       nens <- nlayers(fg_env$fg[[ifg]]$r_main)
-
-      nsus <- vector( mode="numeric", length=Bi)
 
       # loop over ensembles 
       for (ens in 1:nens) {
@@ -131,13 +132,13 @@ fgt_r <- function( argv,
         fg_z    <- integer(0)
         fg_val  <- integer(0)
         t0a <- Sys.time()
-        if ( is.null(rfg)) boom( "ERROR in FGT")
+        if ( is.null(rfg)) boom( "ERROR in SCT_fg")
         dfg <- getValues( rfg)
         if ( !is.null( rfgdem)) { dfgdem <- getValues( rfgdem) } else
                                 { dfgdem <- rep( 0, length( dfg)) }
 
         # data transformation
-        if (argv$transf.fg) dfg <- boxcox( x=dfg, lambda=argv$boxcox.lambda)
+        if (argv$transf.sct_fg) dfg <- boxcox( x=dfg, lambda=argv$boxcox.lambda)
 
         # get coordinates into CRS 
         ixx <- which( !is.na(dfg) & !is.na(dfgdem))
@@ -158,11 +159,11 @@ fgt_r <- function( argv,
         }
 
         # functions
-        spatagg <- function(i) { val <- fg_val[nnix[i,]]; return( c( mean( val), sd( val))) }
-        demspatagg <- function(i) { val <- fg_z[nnix[i,]]; mean( val) }
+        spatagg <- function(i) { mean( fg_val[nnix[i,]]) }
+        demspatagg <- function(i) { mean( fg_z[nnix[i,]]) }
 
         # test
-        for (i in 1:argv$i.fg) {
+        for (i in 1:argv$i.sct_fg) {
 
           nsus[]<-0
 
@@ -175,12 +176,12 @@ fgt_r <- function( argv,
             for (f in 1:M) {
               ix <- which( data$prid == argv$prid[f])
               if ( length(ix) == 0) next
-              tpos[ix] <- argv$tpos.fg[(j-1)*M+f]
-              tneg[ix] <- argv$tneg.fg[(j-1)*M+f]
+              tpos[ix] <- argv$tpos.sct_fg[(j-1)*M+f]
+              tneg[ix] <- argv$tneg.sct_fg[(j-1)*M+f]
             }
             prio_unique <- sort( unique( prio, na.rm=T), decreasing=T)
             rm( ix)
-            
+
             first_k <- T
             for (k in 1:length(prio_unique)) {
               # use only (probably) good observations with doit!=0
@@ -204,6 +205,7 @@ fgt_r <- function( argv,
                 obsToCheck_maxv <- values_maxv[ix]
                 obsToCheck_tpos <- tpos[ix]
                 obsToCheck_tneg <- tneg[ix]
+                obsToCheck_eps2 <- eps2[ix]
                 obsToCheck_chk <- rep( 0, obsToCheck_n)
                 # check only those observations with priorities geq than this
                 obsToCheck_chk[prio[ix]>=prio_unique[k]] <- 1
@@ -211,8 +213,8 @@ fgt_r <- function( argv,
                 if (first_k) {
                   nn2 <- nn2( cbind( fg_x, fg_y), 
                               query = cbind( x[ix], y[ix]), 
-                              k = argv$num_max_aggn.fg[j], 
-                              searchtype = "radius", radius = argv$aggn_radius.fg[j])
+                              k = argv$num_max_aggn.sct_fg[j], 
+                              searchtype = "radius", radius = argv$aggn_radius.sct_fg[j])
                   nnix <- nn2[[1]]
                   if (!is.na(argv$cores)) {
                     aux <- t( mcmapply( spatagg,
@@ -225,10 +227,9 @@ fgt_r <- function( argv,
                                       1:length(ix),
                                       SIMPLIFY = T))
                   }
-                  fgstat_at_opoint <- array( data=NA, dim=c( ndata, 2))
-                  fgstat_at_opoint[ix,1] <- aux[,1]
-                  fgstat_at_opoint[ix,2] <- aux[,2]
-                  rm( aux)
+                  fgstat_at_opoint   <- vector( mode="numeric", length=ndata)
+                  fgstat_at_opoint[] <- NA
+                  fgstat_at_opoint[ix] <- aux
 
                   if ( !is.null( rfgdem)) {
                     if (!is.na(argv$cores)) {
@@ -250,33 +251,37 @@ fgt_r <- function( argv,
 
                   first_k <- F
                 }
-      
-                background_values <- fgstat_at_opoint[ix,1]
-                background_uncertainties <- fgstat_at_opoint[ix,2]
 
-                if ( !is.null( rfgdem))
+                background_values <- fgstat_at_opoint[ix]
+
+                if ( !is.null( rfgdem)) 
                   background_values <- background_values + 
                    argv$gamma.standard * ( z[ix] - demstat_at_opoint[ix])
   
-                res <- fgt( points = Points( obsToCheck_lat, 
+                res <- sct_resistant(
+                            points = Points( obsToCheck_lat, 
                                              obsToCheck_lon, 
                                              obsToCheck_z),
                             obsToCheck_val,
                             obsToCheck_chk,
                             background_values,
-                            background_uncertainties,
                             background_elab_type,
-                            argv$num_min_outer.fg[j],
-                            argv$num_max_outer.fg[j],
-                            argv$circle_radius.fg[j],
-                            argv$circle_radius.fg[j],
+                            argv$num_min_outer.sct_fg[j],
+                            argv$num_max_outer.sct_fg[j],
+                            argv$inner_radius.sct_fg[j],
+                            argv$outer_radius.sct_fg[j],
                             100,
                             num_min_prof,
                             min_elev_diff,
+                            argv$min_horizontal_scale.sct_fg[j],
+                            argv$max_horizontal_scale.sct_fg[j],
+                            argv$kth_closest_obs_horizontal_scale.sct_fg[j],
+                            argv$vertical_scale.sct_fg[j],
                             obsToCheck_mina,
                             obsToCheck_maxa,
                             obsToCheck_minv,
                             obsToCheck_maxv,
+                            obsToCheck_eps2,
                             obsToCheck_tpos,
                             obsToCheck_tneg,
                             debug)
@@ -292,9 +297,9 @@ fgt_r <- function( argv,
                 if (length(sus)>0) dqcflag_f[ix[sus]] <- argv$fg.code
 
               } else {
-                cat( "no valid observations left, no FGT\n")
+                cat( "no valid observations left, no SCT_fg\n")
               }
-              nsus[jj] <- ifelse( exists("sus"), length(sus), 0)
+              nsus[j] <- ifelse( exists("sus"), length(sus), 0)
               t1a  <- Sys.time()
               str  <- " (#TOT "
               str1 <- ""
@@ -304,25 +309,35 @@ fgt_r <- function( argv,
                         length( which( dqcflag_f==argv$fg.code & 
                                        data$prid==argv$prid[f])))
                 str1 <- paste0( str1, "::prid ", argv$prid[f]," ",
-                                      "prio=", argv$prio.fg[f],",",
-                                      "tpos=", argv$tpos.fg[(j-1)*M+f],",",
-                                      "tneg=", argv$tneg.fg[(j-1)*M+f])
+                                      "prio=", argv$prio.sct_fg[f],",",
+                                      "eps2=", argv$eps2.sct_fg[(j-1)*M+f],",",
+                                      "tpos=", argv$tpos.sct_fg[(j-1)*M+f],",",
+                                      "tneg=", argv$tneg.sct_fg[(j-1)*M+f])
               }
               str<-paste0(str,")")
-              cat( paste0( "FGT-TMP ifg=",ifg,"of",B,
+              cat( paste0( "SCT_fg-TMP ifg=",ifg,"of",B,
                            "/ens=", ens, "of", nens,
                            "/iteration=", i,
                            "/test=", j,
                            "/prio>=", prio_unique[k],
                            "/dqc param:",
-                           "circle_rad=", argv$circle_radius.fg[j],",",
+                           "inner_rad=", argv$inner_radius.sct_fg[j],",",
+                           "outer_rad=", argv$outer_radius.sct_fg[j],",",
+                           "nmin_outer=", argv$num_min_outer.sct_fg[j],",",
+                           "nmax_outer=", argv$num_max_outer.sct_fg[j],",",
+                           "min_hscale=", argv$min_horizontal_scale.sct_fg[j],",",
+                           "max_hscale=", argv$max_horizontal_scale.sct_fg[j],",",
+                           "kth_dh=", argv$kth_closest_obs_horizontal_scale.sct_fg[j],",",
+                           "dz=", argv$vertical_scale.sct_fg[j],",",
+                           "nmax_agg=", argv$num_max_aggn.sct_fg[j],",",
+                           "agg_radius=", argv$aggn_radius.sct_fg[j],",",
                            str1,
                            "/time ",round(t1a-t0a,1),attr(t1a-t0a,"unit"),"\n"))
-              cat( paste0( nsus[jj]," new suspect observations", str, "\n"))
+              cat( paste0( nsus[j]," new suspect observations", str, "\n"))
               rm(str)
             } # end for k
           } # end for j
-          if ( sum(nsus) <= argv$break.fg) break
+          if ( sum(nsus) <= argv$break.sct_fg) break
         }   # end for i
 
         # accumulate dqcflag
@@ -334,7 +349,7 @@ fgt_r <- function( argv,
       sus  <- which( dqcflag_acc >= (nens/2))
       nsus <- length( sus)
       if ( nsus > 0) dqcflag[sus] <- argv$fg.code
-      cat( paste0( "FGT field=", f, ", total number of suspect observations=", nsus, "\n"))
+      cat( paste0( "SCT_fg field=", f,", total number of suspect observations=",nsus))
 
     } # end if
   } # end for first-guesses
