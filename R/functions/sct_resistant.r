@@ -1,9 +1,9 @@
 #+ spatial consistency test resistant to outlier in the data
-sct_resistant <- function( argv, 
-                           ndata, 
-                           data,
-                           z, 
-                           dqcflag) {
+sct_resistant_r <- function( argv, 
+                             ndata, 
+                             data,
+                             z, 
+                             dqcflag) {
 #------------------------------------------------------------------------------
 # test deviations between observations and spatial trend in a region
 # See the wiki 

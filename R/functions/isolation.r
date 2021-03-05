@@ -1,32 +1,46 @@
 #+ Isolation test
-isolation_test <- function( doit, argv, data, dqcflag, x, y){
+isolation_test <- function( argv,
+                            ndata, 
+                            data, 
+                            dqcflag){
 #==============================================================================
+
+  cat( paste0( "isolation test (code=", argv$isol.code, ")\n"))
+
+  # number of observation providers
+  M <- nfin
+
   # set doit vector
-  doit<-vector(length=ndata,mode="numeric")
-  doit[]<-NA
-  for (f in 1:nfin) doit[data$prid==argv$prid[f]]<-argv$doit.iso[f]
+  if ( length( argv$doit.iso) != M) 
+    argv$doit.iso <- rep( argv$doit.iso[1], M)
+  doit   <-vector( length=ndata, mode="numeric")
+  doit[] <- NA
+  for (f in 1:M) 
+    doit[data$prid==argv$prid[f]] <- argv$doit.iso[f]
+
   #
-  ix<-which(is.na(dqcflag) & doit!=0)
-  if (length(ix)>0) {
-    # define global 1D vector used in nstat (1D for fast access)
-    xtot<-x[ix]
-    ytot<-y[ix]
-    xy<-cbind(xtot,ytot)
-    isolation_check( ytot, xtot, argv$n.isol, argv$dr.isol)
-    ns<-apply(xy,FUN=nstat,MARGIN=1,drmin=argv$dr.isol)
-    sus<-which(ns<argv$n.isol & doit[ix]==1)
+  ix <- which( is.na(dqcflag) & doit!=0)
+  if ( length(ix) > 0) {
+    flag <- isolation_check( points = Points( data$lat[ix], data$lon[ix], rep( 0, length(ix))),
+                             argv$n.isol,
+                             argv$dr.isol,
+                             Inf) 
+
+    # suspect if: 
+    sus <- which( flag == 1 &
+                  is.na(dqcflag[ix]) &
+                  doit[ix] == 1 )
+
     # set dqcflag
-    if (length(sus)>0) dqcflag[ix[sus]]<-argv$isol.code
+    if ( length(sus) > 0) dqcflag[ix[sus]] <- argv$isol.code
+
   } else {
-    print("no valid observations left, no check for isolated observations")
+    cat( "no valid observations left, no check for isolated observations\n")
   }
-  rm(doit)
-  if (argv$verbose | argv$debug) {
-    print(paste("# isolated observations=",length(which(dqcflag==argv$isol.code))))
-    print("+---------------------------------+")
-  }
-  if (argv$debug) 
-    save.image(file.path(argv$debug.dir,"dqcres_iso.RData")) 
+
+  cat( paste( "# isolated observations=", length( which( dqcflag == argv$isol.code)), "\n"))
+  cat( "+---------------------------------+\n")
+
   #
   return(dqcflag)
 }

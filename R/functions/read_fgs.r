@@ -41,7 +41,7 @@ read_fgs <- function( argv, extent) {
                                      nc.varname = fg_env$fg[[f]]$aux1.varname,
                                      nc.t       = fg_env$fg[[f]]$aux1.t,
                                      nc.e       = fg_env$fg[[f]]$aux1.e,
-                                     topdown    = argv$fge.demtopdown,
+                                     topdown    = fg_env$fg[[f]]$aux1.topdown,
                                      var.dim    = list( ndim  = fg_env$fg[[f]]$aux1.ndim,
                                                         tpos  = fg_env$fg[[f]]$aux1.tpos,
                                                         epos  = fg_env$fg[[f]]$aux1.epos,

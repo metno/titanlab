@@ -29,8 +29,6 @@ sct_fg_resistant <- function( argv,
   # number of background fields
   if ( ( B <- length( fg_env$fg)) == 0) return( FALSE)
 
-  nsus <- vector( mode="numeric", length=length(argv$sct_fglab.sct_fg))
-
   debug <- FALSE
   background_elab_type <- "External"
   num_min_prof  <- -999
@@ -58,6 +56,16 @@ sct_fg_resistant <- function( argv,
     argv$num_max_aggn.sct_fg <- rep( argv$num_max_aggn.sct_fg[1], N)
   if ( length( argv$aggn_radius.sct_fg) != N) 
     argv$aggn_radius.sct_fg <- rep( argv$aggn_radius.sct_fg[1], N)
+  if ( length( argv$outer_radius.sct_fg) != N) 
+    argv$outer_radius.sct_fg <- rep( argv$outer_radius.sct_fg[1], N)
+  if ( length( argv$min_horizontal_scale.sct_fg) != N) 
+    argv$min_horizontal_scale.sct_fg <- rep( argv$min_horizontal_scale.sct_fg[1], N)
+  if ( length( argv$max_horizontal_scale.sct_fg) != N) 
+    argv$max_horizontal_scale.sct_fg <- rep( argv$max_horizontal_scale.sct_fg[1], N)
+  if ( length( argv$kth_closest_obs_horizontal_scale.sct_fg) != N) 
+    argv$kth_closest_obs_horizontal_scale.sct_fg <- rep( argv$kth_closest_obs_horizontal_scale.sct_fg[1], N)
+  if ( length( argv$vertical_scale.sct_fg) != N) 
+    argv$vertical_scale.sct_fg <- rep( argv$vertical_scale.sct_fg[1], N)
 
   #............................................................................
   # set doit/prio vectors
@@ -111,6 +119,8 @@ sct_fg_resistant <- function( argv,
       if ( ( Bi <- length( ixfglab <- which( argv$sct_fglab.sct_fg == ifg))) == 0 ) next
 
       nens <- nlayers(fg_env$fg[[ifg]]$r_main)
+
+      nsus <- vector( mode="numeric", length=Bi)
 
       # loop over ensembles 
       for (ens in 1:nens) {
@@ -173,11 +183,13 @@ sct_fg_resistant <- function( argv,
 
             tpos <- vector( length=ndata, mode="numeric"); tpos[]<-NA
             tneg <- vector( length=ndata, mode="numeric"); tneg[]<-NA
+            eps2 <- vector( length=ndata, mode="numeric"); eps2[]<-NA
             for (f in 1:M) {
               ix <- which( data$prid == argv$prid[f])
               if ( length(ix) == 0) next
               tpos[ix] <- argv$tpos.sct_fg[(j-1)*M+f]
               tneg[ix] <- argv$tneg.sct_fg[(j-1)*M+f]
+              eps2[ix] <- argv$eps2.sct_fg[(j-1)*M+f]
             }
             prio_unique <- sort( unique( prio, na.rm=T), decreasing=T)
             rm( ix)
@@ -294,19 +306,19 @@ sct_fg_resistant <- function( argv,
                             doit[ix]==1 )
 
                 # set dqcflag
-                if (length(sus)>0) dqcflag_f[ix[sus]] <- argv$fg.code
+                if (length(sus)>0) dqcflag_f[ix[sus]] <- argv$sct_fg.code
 
               } else {
                 cat( "no valid observations left, no SCT_fg\n")
               }
-              nsus[j] <- ifelse( exists("sus"), length(sus), 0)
+              nsus[jj] <- ifelse( exists("sus"), length(sus), 0)
               t1a  <- Sys.time()
               str  <- " (#TOT "
               str1 <- ""
               for (f in 1:M) {
                 if (f>1) str<-paste0(str,"; ")
                 str <- paste0( str, "prid", argv$prid[f], "=", 
-                        length( which( dqcflag_f==argv$fg.code & 
+                        length( which( dqcflag_f==argv$sct_fg.code & 
                                        data$prid==argv$prid[f])))
                 str1 <- paste0( str1, "::prid ", argv$prid[f]," ",
                                       "prio=", argv$prio.sct_fg[f],",",
@@ -333,7 +345,7 @@ sct_fg_resistant <- function( argv,
                            "agg_radius=", argv$aggn_radius.sct_fg[j],",",
                            str1,
                            "/time ",round(t1a-t0a,1),attr(t1a-t0a,"unit"),"\n"))
-              cat( paste0( nsus[j]," new suspect observations", str, "\n"))
+              cat( paste0( nsus[jj]," new suspect observations", str, "\n"))
               rm(str)
             } # end for k
           } # end for j
@@ -341,15 +353,15 @@ sct_fg_resistant <- function( argv,
         }   # end for i
 
         # accumulate dqcflag
-        dqcflag_acc[which(dqcflag_f==argv$fg.code)] <- dqcflag_acc[which(dqcflag_f==argv$fg.code)] + 1
+        dqcflag_acc[which(dqcflag_f==argv$sct_fg.code)] <- dqcflag_acc[which(dqcflag_f==argv$sct_fg.code)] + 1
 
       } # end for ens
 
       # set dqcflag
       sus  <- which( dqcflag_acc >= (nens/2))
       nsus <- length( sus)
-      if ( nsus > 0) dqcflag[sus] <- argv$fg.code
-      cat( paste0( "SCT_fg field=", f,", total number of suspect observations=",nsus))
+      if ( nsus > 0) dqcflag[sus] <- argv$sct_fg.code
+      cat( paste0( "SCT_fg field=", f,", total number of suspect observations=",nsus,"\n"))
 
     } # end if
   } # end for first-guesses

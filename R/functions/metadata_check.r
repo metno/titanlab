@@ -16,7 +16,6 @@ metadata_check_r <- function( argv,
 # dqcflag. updated data quality control flags.
 #==============================================================================
 # NOTE: keep-listed stations could be flagged here
-print("b")
   ix <- which( is.na( dqcflag) | dqcflag == argv$keep.code)
   if ( length( ix) > 0) {
     meta <- is.na( data$lat[ix]) | 

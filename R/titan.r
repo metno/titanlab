@@ -68,8 +68,6 @@ if ( !file.exists( const_file)) boom( const_file, code=1)
 
 source( const_file)
 
-print( proj4_input_obsfiles_default)
-
 #
 #-----------------------------------------------------------------------------
 # read command line arguments and/or configuration file
@@ -153,12 +151,6 @@ if (argv$dem | argv$dem.fill) {
   dqcflag <- res$dqcflag
   rm(res, dqcflag.bak)
 }
-# land area fraction (%, e.g 10 yes, 0.1 no)
-if (argv$laf.sct) {
-  laf <- read_laf( argv)
-} else { # use a fake laf
-  laf <- rep( 1, ndata)
-}
 
 #
 #-----------------------------------------------------------------------------
@@ -217,6 +209,13 @@ if ( !is.na( argv$month.clim))
 
 #
 #-----------------------------------------------------------------------------
+# check against first-guess fields
+
+if (argv$fgt) 
+  dqcflag <- fgt_r( argv, ndata, data, x, y, z, dqcflag)
+
+#
+#-----------------------------------------------------------------------------
 # buddy check 
 #  compare each observation against the neighbouring observations 
 # NOTE: keep-listed stations are used but they canNOT be flagged here
@@ -226,10 +225,11 @@ if (argv$buddy)
 
 #
 #-----------------------------------------------------------------------------
-# check against first-guess fields
+# SCT - Spatial Consistency Test, using background fields
+# NOTE: keep-listed stations are used but they canNOT be flagged here
 
-if (argv$fgt) 
-  dqcflag <- fgt_r( argv, ndata, data, x, y, z, dqcflag)
+if (argv$sct_fg)
+  dqcflag <- sct_fg_resistant( argv, ndata, data,  x, y, z, dqcflag)
 
 #
 #-----------------------------------------------------------------------------
@@ -237,32 +237,22 @@ if (argv$fgt)
 # NOTE: keep-listed stations are used but they canNOT be flagged here
 
 if (argv$sct)
-  dqcflag <- sct_resistant( argv, ndata, data, z, dqcflag)
+  dqcflag <- sct_resistant_r( argv, ndata, data, z, dqcflag)
 
-#
-#-----------------------------------------------------------------------------
-# SCT - Spatial Consistency Test, using background fields
-# NOTE: keep-listed stations are used but they canNOT be flagged here
-
-if (argv$sct_fg)
-  dqcflag <- sct_fg_resistant( argv, ndata, data,  x, y, z, dqcflag)
-
-q()
-
-#-----------------------------------------------------------------------------
-# cool test (Check fOr hOLes in the field)
-if (argv$cool) 
-  dqcflag <- cool_test( argv, data, dqcflag, x, y)
 #
 #-----------------------------------------------------------------------------
 # check for isolated stations
 # use only (probably) good observations
+
 if (argv$isolation_check)
-  dqcflag <- isolation_test( argv, ndata, data, dqcflag, x, y)
+  dqcflag <- isolation_test( argv, ndata, data, dqcflag)
+
 #
 #-----------------------------------------------------------------------------
 # observations not flagged are assumed to be good observations 
+
 dqcflag <- final_decision( data, dqcflag)
+
 #
 #-----------------------------------------------------------------------------
 # write the output file
