@@ -209,6 +209,21 @@ if ( !is.na( argv$month.clim))
 
 #
 #-----------------------------------------------------------------------------
+# SCT for dichotomous (yes/no) variables with the background
+
+if (argv$sct_dual) 
+  dqcflag <- sct_fg_dual_r( argv, ndata, data, x,y, z, dqcflag)
+
+
+#
+#-----------------------------------------------------------------------------
+# SCT for dichotomous (yes/no) variables
+
+if (argv$sct_dual) 
+  dqcflag <- sct_dual_r( argv, ndata, data, z, dqcflag)
+
+#
+#-----------------------------------------------------------------------------
 # check against first-guess fields
 
 if (argv$fgt) 

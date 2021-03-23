@@ -19,7 +19,12 @@
   #
   # first-guess configuration files
   p <- add_argument(p, "--fg.files",
-                    help="information used to read first-guesses nc-file(s) (use conf <- list( var1=..., var2=..., ... )",
+                    help="information used to read first-guess nc-file(s) (use conf <- list( var1=..., var2=..., ... )",
+                    type="character",
+                    default=NULL,
+                    nargs=Inf)
+  p <- add_argument(p, "--fg.filenames",
+                    help="file names of the first-guess nc-files. It is an optional argument, if specified: i) must have the same length of --fg.files ii) override the main.file arguments in the fg.files",
                     type="character",
                     default=NULL,
                     nargs=Inf)

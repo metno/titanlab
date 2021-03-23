@@ -112,7 +112,18 @@ argparser <- function() {
       }
     }
   }
-
+  # one can specify file names outside the fg config files
+  if ( any( !is.na( argv$fg.filenames))) {
+    if ( length( argv$fg.files) != length( argv$fg.filenames))
+      boom( "since --fg.files and --fg.filenames are both defined, they must have the same lenght")
+    for (f in 1:length(argv$fg.files)) {
+      if ( file.exists( argv$fg.filenames[f])) {
+        fg_env$fg[[f]]$main.file <- argv$fg.filenames[f]
+      } else {
+        boom( paste( "ERROR: file not foud", argv$fg.filenames[f]))
+      }
+    }
+  }
   #
   #-----------------------------------------------------------------------------
   # CHECKS on input arguments
@@ -294,18 +305,12 @@ argparser <- function() {
   #
   # doit flags
   if (any(is.na(argv$doit.buddy))) argv$doit.buddy<-rep(1,length=nfin)
-  if (any(is.na(argv$doit.buddy_eve))) argv$doit.buddy_eve<-rep(1,length=nfin)
   if (any(is.na(argv$doit.sct))) argv$doit.sct<-rep(1,length=nfin)
   if (any(is.na(argv$doit.clim))) argv$doit.clim<-rep(1,length=nfin)
   if (any(is.na(argv$doit.dem))) argv$doit.dem<-rep(1,length=nfin)
   if (any(is.na(argv$doit.isol))) argv$doit.isol<-rep(1,length=nfin)
-  if (any(is.na(argv$doit.fg))) argv$doit.fg<-rep(1,length=nfin)
-  if (any(is.na(argv$doit.fge))) argv$doit.fge<-rep(1,length=nfin)
-  if (any(is.na(argv$doit.cool))) argv$doit.cool<-rep(1,length=nfin)
   if (any(!(argv$doit.buddy %in% c(0,1,2)))) 
     boom("doit.buddy must contain only 0,1,2")
-  if (any(!(argv$doit.buddy_eve %in% c(0,1,2))))
-    boom("doit.buddy_eve must contain only 0,1,2")
   if (any(!(argv$doit.sct %in% c(0,1,2))))
     boom("doit.sct must contain only 0,1,2")
   if (any(!(argv$doit.clim %in% c(0,1,2))))
@@ -314,10 +319,6 @@ argparser <- function() {
     boom("doit.dem must contain only 0,1,2")
   if (any(!(argv$doit.isol %in% c(0,1,2))))
     boom("doit.isol must contain only 0,1,2")
-  if (any(!(argv$doit.fg %in% c(0,1,2))))
-    boom("doit.fg must contain only 0,1,2")
-  if (any(!(argv$doit.cool %in% c(0,1,2))))
-    boom("doit.cool must contain only 0,1,2")
   #
   # set the thresholds for the plausibility check
   if (!is.na(argv$tmin) & is.na(argv$vmin)) argv$vmin<-argv$tmin
@@ -336,9 +337,6 @@ argparser <- function() {
   if (is.null(argv$prio.buddy)) argv$prio.buddy<-rep(-1,length=nfin)
   if (any(is.na(argv$prio.buddy))) argv$prio.buddy<-rep(-1,length=nfin)
   if (length(argv$prio.buddy)!=nfin) argv$prio.buddy<-rep(-1,length=nfin)
-  if (is.null(argv$prio.buddy_eve)) argv$prio.buddy_eve<-rep(-1,length=nfin)
-  if (any(is.na(argv$prio.buddy_eve))) argv$prio.buddy_eve<-rep(-1,length=nfin)
-  if (length(argv$prio.buddy_eve)!=nfin) argv$prio.buddy_eve<-rep(-1,length=nfin)
 
   # buddy checks
   if ( !any( !is.na( argv$dr.buddy))) argv$dr.buddy <- 3000
