@@ -82,12 +82,9 @@ argv <- argparser()
 #-----------------------------------------------------------------------------
 # Load titanlib
 
-dyn.load( file.path( argv$titanlib_path, 
-                     paste( "SWIG/R/titanlib", 
-                            .Platform$dynlib.ext,
-                            sep="")))
+dyn.load( file.path( argv$titanlib_path, paste0( "titanlib", .Platform$dynlib.ext)))
 
-source( file.path( argv$titanlib_path, "SWIG/R/titanlib.R"))
+source( file.path( argv$titanlib_path, "titanlib.R"))
 
 #
 #-----------------------------------------------------------------------------
@@ -103,11 +100,9 @@ if ( !is.na( argv$cores)) {
 #-----------------------------------------------------------------------------
 # read data
 #
-nfin        <- length( argv$input.files)
-res         <- read_data_to_check( argv, nfin)
+res         <- read_data_to_check( argv)
 extent      <- res$extent
 data        <- res$data
-ndata       <- length(data$lat)
 dqcflag     <- res$dqcflag
 z           <- res$z
 sctpog      <- res$sctpog
@@ -189,7 +184,7 @@ dqcflag <- metadata_check_r ( argv, data, z, extent, dqcflag)
 # NOTE: keep-listed stations canNOT be flagged here
 
 if (argv$dem) 
-  dqcflag <- check_z_against_dem( argv, data, z, zdem, nfin, dqcflag )
+  dqcflag <- check_z_against_dem( argv, data, z, zdem, dqcflag )
 
 #
 #-----------------------------------------------------------------------------
@@ -205,29 +200,28 @@ dqcflag <- plausibility_test( argv, data, dqcflag)
 # use only (probably) good observations
 
 if ( !is.na( argv$month.clim))
-  dqcflag <- climatological_check( argv, ndata, data, dqcflag)
+  dqcflag <- climatological_check( argv, data, dqcflag)
 
 #
 #-----------------------------------------------------------------------------
 # SCT for dichotomous (yes/no) variables with the background
 
 if (argv$sct_dual) 
-  dqcflag <- sct_fg_dual_r( argv, ndata, data, x,y, z, dqcflag)
-
+  dqcflag <- sct_fg_dual_r( argv, data, x, y, z, dqcflag)
 
 #
 #-----------------------------------------------------------------------------
 # SCT for dichotomous (yes/no) variables
 
 if (argv$sct_dual) 
-  dqcflag <- sct_dual_r( argv, ndata, data, z, dqcflag)
+  dqcflag <- sct_dual_r( argv, data, z, dqcflag)
 
 #
 #-----------------------------------------------------------------------------
 # check against first-guess fields
 
 if (argv$fgt) 
-  dqcflag <- fgt_r( argv, ndata, data, x, y, z, dqcflag)
+  dqcflag <- fgt_r( argv, data, x, y, z, dqcflag)
 
 #
 #-----------------------------------------------------------------------------
@@ -236,7 +230,7 @@ if (argv$fgt)
 # NOTE: keep-listed stations are used but they canNOT be flagged here
 
 if (argv$buddy)
-  dqcflag <- buddy( argv, ndata, data, z, dqcflag)
+  dqcflag <- buddy( argv, data, z, dqcflag)
 
 #
 #-----------------------------------------------------------------------------
@@ -244,23 +238,23 @@ if (argv$buddy)
 # NOTE: keep-listed stations are used but they canNOT be flagged here
 
 if (argv$sct_fg)
-  dqcflag <- sct_fg_resistant( argv, ndata, data,  x, y, z, dqcflag)
+  dqcflag <- sct_fg_resistant( argv, data,  x, y, z, dqcflag)
 
 #
 #-----------------------------------------------------------------------------
 # SCT - Spatial Consistency Test
 # NOTE: keep-listed stations are used but they canNOT be flagged here
 
-if (argv$sct)
-  dqcflag <- sct_resistant_r( argv, ndata, data, z, dqcflag)
+if ( argv$sct)
+  dqcflag <- sct_resistant_r( argv, data, z, dqcflag)
 
 #
 #-----------------------------------------------------------------------------
 # check for isolated stations
 # use only (probably) good observations
 
-if (argv$isolation_check)
-  dqcflag <- isolation_test( argv, ndata, data, dqcflag)
+if ( argv$isolation_check)
+  dqcflag <- isolation_test( argv, data, dqcflag)
 
 #
 #-----------------------------------------------------------------------------
