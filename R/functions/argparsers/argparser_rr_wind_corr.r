@@ -141,7 +141,7 @@
   p <- add_argument(p, "--t2m.demoffset",
                     help="offset",
                     type="character",
-                    default="0",
+                    default="0")
 
   p <- add_argument(p, "--t2m.demcfact",
                     help="correction factor",

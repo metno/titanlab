@@ -23,8 +23,8 @@ isolation_test <- function( argv,
   ix <- which( is.na(dqcflag) & doit!=0)
   if ( length(ix) > 0) {
     flag <- isolation_check( points = Points( data$lat[ix], data$lon[ix], rep( 0, length(ix))),
-                             argv$n.isol,
-                             argv$dr.isol,
+                             argv$n.iso,
+                             argv$dr.iso,
                              Inf) 
 
     # suspect if: 

@@ -1,10 +1,7 @@
 #+ write output file
 write_output <- function( argv, 
-                          rrad, 
                           data, 
                           dqcflag, 
-                          sctpog, 
-                          corep,
                           dataopt,
                           varidx,
                           varidx.opt) {
@@ -32,7 +29,8 @@ write_output <- function( argv,
   varidx.out <- varidx
   if ( any( !is.na( argv$varname.opt))) 
     varidx.out <- c(varidx,varidx.opt[which(!is.na(varidx.opt))])
-  dataout_ncol <- length(varidx.out)+4
+#  dataout_ncol <- length(varidx.out)+4
+  dataout_ncol <- length(varidx.out)+2
 
   dataout<-array( data=NA, dim=c(length(yout), dataout_ncol) )
   ord.varidx.out<-order(varidx.out)
@@ -63,16 +61,14 @@ write_output <- function( argv,
   dataout[,(s+1)] <- data$prid
   str[s+2]        <- argv$varname.dqc
   dataout[,(s+2)] <- dqcflag
-  str[s+3]        <- argv$varname.sct
-  dataout[,(s+3)] <- round(sctpog,2)
-  str[s+4]        <- argv$varname.rep
-  dataout[,(s+4)] <- round(corep,5)
+#  str[s+3]        <- argv$varname.sct
+#  dataout[,(s+3)] <- round(sctpog,2)
+#  str[s+4]        <- argv$varname.rep
+#  dataout[,(s+4)] <- round(corep,5)
 
   # write
   dataout<-as.data.frame(dataout,stringsAsFactors=F)
-
   names(dataout) <- str
-
   write.table( file      = argv$output.file,
                dataout,
                quote     = F,

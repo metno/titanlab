@@ -146,7 +146,7 @@ fgt_r <- function( argv,
           fgxy         <- as.data.frame( xyFromCell( rfg, ixx))
           names( fgxy) <- c( "x", "y")
           coordinates( fgxy) <- c( "x", "y")
-          proj4string( fgxy) <- CRS( argv$proj4fg)
+          proj4string( fgxy) <- CRS( fg_env$fg[[ifg]]$main.proj4)
           fgxy_transf <- as.data.frame( spTransform( fgxy, CRS=argv$proj4_where_dqc_is_done))
           fg_x        <- fgxy_transf[,1]
           fg_y        <- fgxy_transf[,2]

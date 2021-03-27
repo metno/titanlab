@@ -40,8 +40,20 @@ argparser <- function() {
   # isolated stations
   source( file.path( titan_fun_path, "argparsers/argparser_isolation.r"), local=T)
   #.............................................................................. 
+  # first guess test
+  source( file.path( titan_fun_path, "argparsers/argparser_fgt.r"), local=T)
+  #.............................................................................. 
   # spatial consistency test
   source( file.path( titan_fun_path, "argparsers/argparser_sct.r"), local=T)
+  #.............................................................................. 
+  # spatial consistency test wit first guess
+  source( file.path( titan_fun_path, "argparsers/argparser_sct_fg.r"), local=T)
+  #.............................................................................. 
+  # spatial consistency test dual
+  source( file.path( titan_fun_path, "argparsers/argparser_sct_dual.r"), local=T)
+  #.............................................................................. 
+  # spatial consistency test dual wit first guess
+  source( file.path( titan_fun_path, "argparsers/argparser_sct_fg_dual.r"), local=T)
   #.............................................................................. 
   # read dem file
   source( file.path( titan_fun_path, "argparsers/argparser_dem.r"), local=T)

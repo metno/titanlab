@@ -105,8 +105,6 @@ extent      <- res$extent
 data        <- res$data
 dqcflag     <- res$dqcflag
 z           <- res$z
-sctpog      <- res$sctpog
-corep       <- res$corep
 dataopt     <- res$dataopt
 varidx      <- res$varidx
 varidx.opt  <- res$varidx.opt
@@ -206,7 +204,7 @@ if ( !is.na( argv$month.clim))
 #-----------------------------------------------------------------------------
 # SCT for dichotomous (yes/no) variables with the background
 
-if (argv$sct_dual) 
+if (argv$sct_fg_dual) 
   dqcflag <- sct_fg_dual_r( argv, data, x, y, z, dqcflag)
 
 #
@@ -253,7 +251,7 @@ if ( argv$sct)
 # check for isolated stations
 # use only (probably) good observations
 
-if ( argv$isolation_check)
+if ( argv$iso)
   dqcflag <- isolation_test( argv, data, dqcflag)
 
 #
@@ -265,9 +263,7 @@ dqcflag <- final_decision( data, dqcflag)
 #
 #-----------------------------------------------------------------------------
 # write the output file
-if (!argv$radarout) rrad <- NULL
-write_output( argv, rrad, data, dqcflag, sctpog, corep, 
-              dataopt, varidx, varidx.opt) 
+write_output( argv, data, dqcflag, dataopt, varidx, varidx.opt) 
 #
 #-----------------------------------------------------------------------------
 # Normal exit

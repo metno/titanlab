@@ -152,21 +152,6 @@
                     type="character",
                     default="value")
 
-  p <- add_argument(p, "--varname.fg.out",
-                    help="name for the first guess (out)",
-                    type="character",
-                    default="fg")
-
-  p <- add_argument(p, "--varname.fge_mean.out",
-                    help="name for the first guess ensemble mean (out)",
-                    type="character",
-                    default="fge_mean")
-
-  p <- add_argument(p, "--varname.fge_sd.out",
-                    help="name for the first guess standard deviation (out)",
-                    type="character",
-                    default="fge_sd")
-
   # output file
 
   p <- add_argument(p, "--varname.opt",

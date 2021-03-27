@@ -74,7 +74,7 @@
                     type="integer",
                     default=999)
 
-  p <- add_argument(p, "--code.black",
+  p <- add_argument(p, "--code.keep",
       help="quality code assigned to observations listed in the keep-list",
                     type="integer",
                     default=990)

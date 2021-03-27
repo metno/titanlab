@@ -3,6 +3,8 @@ final_decision <- function( data,
                             dqcflag){
 #==============================================================================
 
+  nfin <- length( argv$input.files)
+
   # if an observation makes it this far, then it is good
   dqcflag[is.na(dqcflag)] <- 0
 

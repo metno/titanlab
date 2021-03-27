@@ -1,14 +1,16 @@
 #+ spatial consistency test for dichotomous (yes/no) variables with background fields
-sct_fg_dual <- function( argv, 
-                         data,
-                         x,
-                         y,
-                         z, 
-                         dqcflag) {
+sct_fg_dual_r <- function( argv, 
+                           data,
+                           x,
+                           y,
+                           z, 
+                           dqcflag) {
 #------------------------------------------------------------------------------
 #==============================================================================
 
-  ndata       <- length(data$lat)
+  ndata       <- length( data$lat)
+
+  nfin        <- length( argv$input.files)
 
   cat( paste0( "sct_fg_dual with external first guess (code=", argv$code.sct_fg_dual, ")\n"))
 
@@ -117,7 +119,7 @@ sct_fg_dual <- function( argv,
           fgxy         <- as.data.frame( xyFromCell( rfg, ixx))
           names( fgxy) <- c( "x", "y")
           coordinates( fgxy) <- c( "x", "y")
-          proj4string( fgxy) <- CRS( argv$proj4fg)
+          proj4string( fgxy) <- CRS( fg_env$fg[[ifg]]$main.proj4)
           fgxy_transf <- as.data.frame( spTransform( fgxy, CRS=argv$proj4_where_dqc_is_done))
           fg_x        <- fgxy_transf[,1]
           fg_y        <- fgxy_transf[,2]
@@ -181,8 +183,10 @@ sct_fg_dual <- function( argv,
                 obsToCheck_chk[prio[ix]>=prio_unique[k]] <- 1
                 # do not check the fg
                 obsToCheck_chk  <- c( obsToCheck_chk, rep(0,obsToCheck_fgn))
-  
-                res <- sct_resistant(
+
+                cat("\n") 
+
+                res <- sct_dual(
                             points = Points( obsToCheck_lat, 
                                              obsToCheck_lon, 
                                              obsToCheck_z),
@@ -230,7 +234,7 @@ sct_fg_dual <- function( argv,
                                       "r=", argv$event_thresholds.sct_fg_dual[(j-1)*M+f])
               }
               str<-paste0(str,")")
-              cat( paste0( "sct_fg_dual-TMP ifg=",ifg,"of",B,
+              cat( paste0( "++++>> SCT_fg_dual-TMP ifg=",ifg,"of",B,
                            "/ens=", ens, "of", nens,
                            "/iteration=", i,
                            "/test=", j,
@@ -250,10 +254,14 @@ sct_fg_dual <- function( argv,
                            "/time ",round(t1a-t0a,1),attr(t1a-t0a,"unit"),"\n"))
               cat( paste0( nsus[jj]," new suspect observations", str, "\n"))
               rm(str)
-            } # end for k
-          } # end for j
-          if ( sum(nsus) <= argv$break.sct_fg_dual) break
-        }   # end for i
+
+            } # end for k - priorities
+
+          } # end for j - number of test based on the j-th fg field
+
+          if ( sum(nsus) <= argv$break.sct_fg_dual) { cat("++++>> BREAK <<++++\n"); break}
+
+        }   # end for i - iterations i.sct_fg_dual
 
         # accumulate dqcflag
         dqcflag_acc[which(dqcflag_f==argv$code.sct_fg_dual)] <- dqcflag_acc[which(dqcflag_f==argv$code.sct_fg_dual)] + 1
@@ -264,12 +272,16 @@ sct_fg_dual <- function( argv,
       sus  <- which( dqcflag_acc >= (nens/2))
       nsus <- length( sus)
       if ( nsus > 0) dqcflag[sus] <- argv$code.sct_fg_dual
-      cat( paste0( "sct_fg_dual field=", f,", total number of suspect observations=",nsus,"\n"))
+      cat( paste0( "\n++++>> SCT_fg_dual-DEF ifg=", ifg,", total number of suspect observations=", nsus, "\n"))
 
     } # end if
+
   } # end for first-guesses
+
   cat("+---------------------------------+\n")
+
   #
   return(dqcflag)
+
 }
 

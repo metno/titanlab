@@ -2,7 +2,9 @@
 check_z_against_dem <- function( argv, data, z, zdem, dqcflag ) {
 #==============================================================================
 
-  nfin <- length( argv$input.files)
+  nfin  <- length( argv$input.files)
+
+  ndata <- length( data$lat)
 
   if (argv$verbose | argv$debug) 
     print(paste0("check station elevations against digital elevation model (",argv$code.dem,")"))

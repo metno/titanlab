@@ -16,6 +16,7 @@ fun_list <- c(
                "checks/fgt.r",
                "checks/sct_resistant.r",
                "checks/sct_dual_r.r",
+               "checks/sct_fg_dual_r.r",
                "checks/sct_fg_resistant.r",
                "checks/isolation.r",
                # wind-induced adjustement of precipitation

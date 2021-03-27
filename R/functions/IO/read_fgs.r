@@ -68,8 +68,12 @@ read_fgs <- function( argv, extent) {
         if ( is.null( fg_env$fg[[f]]$main.epos)) {
           ei <- 0
         } else {
-          ei <- nc4.getDim( fg_env$fg[[f]]$main.file, 
-                            varid = fg_env$fg[[f]]$main.dimnames[fg_env$fg[[f]]$main.epos])
+          if ( is.null( fg_env$fg[[f]]$main.e)) {
+            ei <- nc4.getDim( fg_env$fg[[f]]$main.file, 
+                              varid = fg_env$fg[[f]]$main.dimnames[fg_env$fg[[f]]$main.epos])
+          } else {
+            ei <- fg_env$fg[[f]]$main.e
+          }
         }
         for (ens in 1:length(ei)) {
           if( ei[ens] == 0) { nc_e <- NA} else { nc_e <- ei[ens]}

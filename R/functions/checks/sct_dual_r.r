@@ -1,6 +1,5 @@
 #+ spatial consistency test for dichotomous (yes/no) variables
 sct_dual_r <- function( argv, 
-                        ndata, 
                         data,
                         z, 
                         dqcflag) {
@@ -11,7 +10,9 @@ sct_dual_r <- function( argv,
 
   cat( paste0( "sct_dual (code=", argv$code.sct_dual, ")\n"))
 
-  ndata       <- length(data$lat)
+  ndata <- length( data$lat)
+  
+  nfin  <- length( argv$input.files)
 
   # number of observation providers
   M <- nfin
@@ -21,7 +22,7 @@ sct_dual_r <- function( argv,
 
   nsus <- vector( mode="numeric", length=N)
 
-  debug <- FALSE
+  debug <- F
 
   if ( length( argv$doit.sct_dual) != M) 
     argv$doit.sct_dual <- rep( argv$doit.sct_dual[1], M)
@@ -107,7 +108,7 @@ sct_dual_r <- function( argv,
           obsToCheck_chk  <- rep( 0, obsToCheck_n)
           # check only those observations with priorities geq than this
           obsToCheck_chk[prio[ix]>=prio_unique[k]] <- 1
-
+          cat("\n")
           res <- sct_dual(
                       points = Points( obsToCheck_lat, 
                                        obsToCheck_lon, 
