@@ -10,7 +10,9 @@ buddy <- function( argv,
 
   cat( paste0( "buddy-check (code=", argv$code.buddy, ")\n"))
 
-  ndata <- length(data$lat)
+  nfin  <- length( argv$input.files)
+
+  ndata <- length( data$lat)
 
   # number of observation providers
   M <- nfin

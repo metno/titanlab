@@ -19,6 +19,8 @@ fgt_r <- function( argv,
 
   cat( paste0( "fgt (code=", argv$code.fgt, ")\n"))
 
+  nfin  <- length(argv$input.files)
+
   ndata <- length(data$lat)
 
   # number of observation providers
@@ -258,7 +260,8 @@ fgt_r <- function( argv,
                 if ( !is.null( rfgdem))
                   background_values <- background_values + 
                    argv$gamma.standard * ( z[ix] - demstat_at_opoint[ix])
-  
+ 
+                cat("\n") 
                 res <- fgt( points = Points( obsToCheck_lat, 
                                              obsToCheck_lon, 
                                              obsToCheck_z),
@@ -310,7 +313,7 @@ fgt_r <- function( argv,
                                       "tneg=", argv$tneg.fgt[(j-1)*M+f])
               }
               str<-paste0(str,")")
-              cat( paste0( "FGT-TMP ifg=",ifg,"of",B,
+              cat( paste0( "++++>> FGT-TMP ifg=",ifg,"of",B,
                            "/ens=", ens, "of", nens,
                            "/iteration=", i,
                            "/test=", j,
@@ -323,7 +326,7 @@ fgt_r <- function( argv,
               rm(str)
             } # end for k
           } # end for j
-          if ( sum(nsus) <= argv$break.fgt) break
+          if ( sum(nsus) <= argv$break.fgt) { cat("++++>> BREAK <<++++\n"); break}
         }   # end for i
 
         # accumulate dqcflag
@@ -335,7 +338,7 @@ fgt_r <- function( argv,
       sus  <- which( dqcflag_acc >= (nens/2))
       nsus <- length( sus)
       if ( nsus > 0) dqcflag[sus] <- argv$code.fgt
-      cat( paste0( "FGT field=", f, ", total number of suspect observations=", nsus, "\n"))
+      cat( paste0( "\n++++>> FGT-DEF ifg=", f, ", total number of suspect observations=", nsus, "\n"))
 
     } # end if
   } # end for first-guesses

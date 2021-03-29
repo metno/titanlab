@@ -11,8 +11,8 @@ proj4.lcc<-"+proj=lcc +lat_0=63 +lon_0=15 +lat_1=63 +lat_2=63 +no_defs +R=6.371e
 # read the variables from the nc-file
 # (note: you may change this part accordingto your nc-tastes)
  
-t <- nc4.getTime( "background_test_ta.nc")
-r <- read_dotnc( nc.file="background_test_ta.nc",
+t <- nc4.getTime( "../data/background_test_ta.nc")
+r <- read_dotnc( nc.file="../data/background_test_ta.nc",
                  nc.varname="air_temperature_2m",
                  topdown=T,
                  out.dim=list(ndim=4,tpos=4,epos=3,
@@ -24,7 +24,7 @@ r <- read_dotnc( nc.file="background_test_ta.nc",
                  verbose=F)
 r$stack[r$stack<0]<-0
 
-dem <- read_dotnc( nc.file="background_test_ta.nc",
+dem <- read_dotnc( nc.file="../data/background_test_ta.nc",
                  nc.varname="altitude",
                  topdown=T,
                  out.dim=list(ndim=2,
@@ -44,7 +44,7 @@ for (i in 1:nprid) {
   x <- runif( p[i], min=extent(r$stack)[1], max=extent(r$stack)[2])
   y <- runif( p[i], min=extent(r$stack)[3], max=extent(r$stack)[4])
   z <- extract( dem$stack, cbind(x,y), method="bilinear")
-  val <- extract( r$stack, cbind(x,y), method="bilinear")
+  val <- extract( r$stack, cbind(x,y), method="bilinear") - 273.15
   ge <- val; ge[] <- 0
   ix <- sample( 1:p[i], ceiling( p[i]*pGE[i]/100))
   ge[ix] <- 1

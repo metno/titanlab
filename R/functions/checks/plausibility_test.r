@@ -7,7 +7,7 @@ plausibility_test <- function( argv, data, dqcflag){
   if ( length( ix <- which( ( is.na(dqcflag) | dqcflag==argv$code.keep) & 
                               range_check( as.numeric( data$value), 
                                            as.numeric(  argv$vmin),
-                                           as.numeric(  argv$vmax))) == 1) > 0) 
+                                           as.numeric(  argv$vmax)) == 1)) > 0) 
     dqcflag[ix] <- argv$code.p
 
   # verbose
@@ -22,6 +22,5 @@ plausibility_test <- function( argv, data, dqcflag){
   cat("+---------------------------------+\n")
 
   #
-
   return(dqcflag)
 }

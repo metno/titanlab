@@ -263,8 +263,11 @@ dqcflag <- final_decision( data, dqcflag)
 #
 #-----------------------------------------------------------------------------
 # write the output file
-write_output( argv, data, dqcflag, dataopt, varidx, varidx.opt) 
+
+write_output( argv, data, dqcflag, dataopt, varidx, varidx.opt)
+ 
 #
 #-----------------------------------------------------------------------------
 # Normal exit
+
 rip( code=1, t0=t0) # exit status is 0

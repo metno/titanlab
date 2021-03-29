@@ -11,7 +11,7 @@
                     default=NA,
                     nargs=Inf)
 
-  p <- add_argument(p, "--sct_fg_dual_lab.sct_fg_dual",
+  p <- add_argument(p, "--fg_lab.sct_fg_dual",
                     help="labels identifying which of the background fields have to be used in the test. The labels refers to the order of the first-guess files. Note: this is the parameter defining N.",
                     type="integer",
                     default=NA,
