@@ -1,16 +1,4 @@
   # default based on Norwegian hourly temperature from 2010-2017
-  p <- add_argument(p, "--tmin.clim",
-                    help="minimum allowed temperature [K or degC] (deprecated)",
-                    type="numeric",
-                    nargs=12,
-                    short="-tC",
-                    default=rep(NA,12))
-  p <- add_argument(p, "--tmax.clim",
-                    help="maximum allowed temperature [K or degC] (deprecated)",
-                    type="numeric",
-                    nargs=12,
-                    short="-TC",
-                    default=rep(NA,12))
   p <- add_argument(p, "--vmin.clim",
                     help=paste("minimum allowed value [units of the variable specified]",neg.str),
                     type="character",

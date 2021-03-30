@@ -10,10 +10,10 @@ sct_resistant_r <- function( argv,
 
   cat( paste0( "sct (code=", argv$code.sct, ")\n"))
 
-  ndata <- length(data$lat)
+  ndata <- length( data$lat)
 
   # number of observation providers
-  M <- nfin
+  M  <- length( argv$input.files)
 
   # number of tests
   if ( ( N <- length( argv$inner_radius.sct)) == 0) return( FALSE)
@@ -151,7 +151,7 @@ sct_resistant_r <- function( argv,
           # check only those observations with priorities geq than this
           obsToCheck_chk[prio[ix]>=prio_unique[k]] <- 1
 
-
+          cat("\n")
           res <- sct_resistant(
                       points = Points( obsToCheck_lat, 
                                        obsToCheck_lon, 
@@ -209,7 +209,7 @@ sct_resistant_r <- function( argv,
                                 "tneg=", argv$tneg.sct[(j-1)*M+f])
         }
         str<-paste0(str,")")
-        cat( paste0( "iteration=", i,
+        cat( paste0( "++++>> SCT iteration=", i,
                      "/test=", j,
                      "/prio>=", prio_unique[k],
                      "/dqc param:",

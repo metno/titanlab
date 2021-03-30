@@ -12,7 +12,9 @@ sct_fg_resistant <- function( argv,
 
   cat( paste0( "sct with external first guess (code=", argv$code.sct_fg, ")\n"))
 
-  ndata <- length(data$lat)
+  nfin  <- length( argv$input.files)
+
+  ndata <- length( data$lat)
 
   # number of observation providers
   M <- nfin
@@ -150,7 +152,7 @@ sct_fg_resistant <- function( argv,
           fgxy         <- as.data.frame( xyFromCell( rfg, ixx))
           names( fgxy) <- c( "x", "y")
           coordinates( fgxy) <- c( "x", "y")
-          proj4string( fgxy) <- CRS( argv$proj4fg)
+          proj4string( fgxy) <- CRS( fg_env$fg[[ifg]]$main.proj4)
           fgxy_transf <- as.data.frame( spTransform( fgxy, CRS=argv$proj4_where_dqc_is_done))
           fg_x        <- fgxy_transf[,1]
           fg_y        <- fgxy_transf[,2]
@@ -167,6 +169,9 @@ sct_fg_resistant <- function( argv,
         demspatagg <- function(i) { mean( fg_z[nnix[i,]]) }
 
         # test
+        flagok_pre <- !is.na( x) & !is.na( y) & !is.na( data$value) &
+                      doit != 0 & !is.na( prio)
+
         for (i in 1:argv$i.sct_fg) {
 
           nsus[]<-0
@@ -185,20 +190,21 @@ sct_fg_resistant <- function( argv,
               tneg[ix] <- argv$tneg.sct_fg[(j-1)*M+f]
               eps2[ix] <- argv$eps2.sct_fg[(j-1)*M+f]
             }
-            prio_unique <- sort( unique( prio, na.rm=T), decreasing=T)
             rm( ix)
 
             first_k <- T
             for (k in 1:length(prio_unique)) {
               # use only (probably) good observations with doit!=0
               flag_aux<-( (is.na(dqcflag_f) | dqcflag_f==argv$code.keep) &
-                          !is.na(x) & !is.na(y) & !is.na(data$value) &
-                          doit!=0 & !is.na(prio))
+                          flagok_pre)
+
               if (argv$variable == "T") flag_aux <- flag_aux & !is.na(z)
+
               ix <- which( flag_aux); rm( flag_aux)
               t0a <- Sys.time()
 
               obsToCheck_n<-length(ix)
+
               if (obsToCheck_n>0) {
                 # define global 1D vector used in statSpat (1D for fast access)
                 obsToCheck_lon <- data$lon[ix]
@@ -263,7 +269,8 @@ sct_fg_resistant <- function( argv,
                 if ( !is.null( rfgdem)) 
                   background_values <- background_values + 
                    argv$gamma.standard * ( z[ix] - demstat_at_opoint[ix])
-  
+
+                cat("\n")  
                 res <- sct_resistant(
                             points = Points( obsToCheck_lat, 
                                              obsToCheck_lon, 
@@ -321,7 +328,7 @@ sct_fg_resistant <- function( argv,
                                       "tneg=", argv$tneg.sct_fg[(j-1)*M+f])
               }
               str<-paste0(str,")")
-              cat( paste0( "SCT_fg-TMP ifg=",ifg,"of",B,
+              cat( paste0( "++++>> SCT_fg-TMP ifg=",ifg,"of",B,
                            "/ens=", ens, "of", nens,
                            "/iteration=", i,
                            "/test=", j,
@@ -355,12 +362,16 @@ sct_fg_resistant <- function( argv,
       sus  <- which( dqcflag_acc >= (nens/2))
       nsus <- length( sus)
       if ( nsus > 0) dqcflag[sus] <- argv$code.sct_fg
-      cat( paste0( "SCT_fg field=", f,", total number of suspect observations=",nsus,"\n"))
+      cat( paste0( "\n++++>> SCT_fg-DEF ifg=", ifg,", total number of suspect observations=",nsus,"\n"))
 
     } # end if
+
   } # end for first-guesses
+
   cat("+---------------------------------+\n")
+
   #
   return(dqcflag)
+
 }
 
