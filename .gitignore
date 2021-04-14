@@ -1,5 +1,6 @@
 .nfs*
 .*.swp
+.*.swo
 *~
 *.o
 *.png

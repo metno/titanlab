@@ -1,0 +1,11 @@
+./titan_tuner_sctres.r 2020-01-01 --date2 2020-01-01 --config_file etc/tg_ngcd.ini --ffin_template data/case_TG_date_%Y%m%d.txt --debug --ffout out_tg.txt
+
+./titan_tuner_sctres.r 2020-01-01 --date2 2020-01-01 --config_file etc/rr_ngcd.ini --ffin_template data/case_RR_date_%Y%m%d.txt --debug --ffout out_rr.txt
+
+##
+
+./titan_tuner_sctres.r 2020-05-30T13 --date2 2020-05-30T13 --config_file etc/ta_dense.ini --ffin_template data/obs_ta_%Y%m%dT%HZ.txt
+
+./titan_tuner_sctres.r 2019-07-30T22 --date2 2019-07-30T22 --config_file etc/rr1_dense.ini --ffin_template data/obs_rr1_%Y%m%dT%HZ.txt --debug
+
+
