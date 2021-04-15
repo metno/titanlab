@@ -1,6 +1,6 @@
 read_data <- function() {
 
-  data_tmp <- read.table( file=ffin, header=T, sep=";", stringsAsFactors=F, strip.white=T)
+  data_tmp <- read.table( file=ffin, header=T, sep=argv$separator, stringsAsFactors=F, strip.white=T)
 
   names <- names( data_tmp)
   

@@ -8,4 +8,5 @@
 
 ./titan_tuner_sctres.r 2019-07-30T22 --date2 2019-07-30T22 --config_file etc/rr1_dense.ini --ffin_template data/obs_rr1_%Y%m%dT%HZ.txt --debug
 
-
+#
+./titan_tuner_sctres.r 2019-09-01T12 --date2 2019-09-01T12 --config_file etc/rr1_europe.ini --ffin_template data/netatmo_europe_%Y%m%dT%HZ.txt --debug

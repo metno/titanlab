@@ -1,4 +1,4 @@
-costf1 <- function( par) {
+costf_sctres <- function( par) {
 
   par[2] <- as.integer(par[2])
   par[5] <- as.integer(par[5])

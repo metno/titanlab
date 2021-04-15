@@ -113,12 +113,27 @@ p <- add_argument(p, "--config_file",
                   type="character",
                   default=NULL)
 
+p <- add_argument(p, "--separator",
+                  help="input file. separator",
+                  type="character",
+                  default=";")
+
 # output file
 
 p<- add_argument(p, "--ffout",
                  help="output file",
                  type="character",
                  default="out.txt")
+
+p<- add_argument(p, "--ffout_png1",
+                 help="output file (path+part of the name) for png1. Used only in debug mode. Note that the name is automatically completed with date/time and the extension .png",
+                 type="character",
+                 default="out_fig1")
+
+p<- add_argument(p, "--ffout_png2",
+                 help="output file (path+part of the name) for png1. Used only in debug mode. Note that the name is automatically completed with date/time and the extension .png",
+                 type="character",
+                 default="out_fig2")
 
 p<- add_argument(p, "--year_string",
                  help="string, placeholder for year",

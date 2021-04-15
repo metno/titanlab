@@ -266,11 +266,12 @@ for (t in 1:n_tseq) { # MAIN LOOP @@BEGIN@@ (jump to @@END@@)
     }
 
     paropt <- constrOptim( theta = theta, 
-                           f=costf1, 
-                           ui=ui, ci= argv$ci, 
-                           grad=NULL,
+                           f     = costf_sctres, 
+                           ui    = ui, 
+                           ci    = argv$ci, 
+                           grad  = NULL,
                            outer.eps = 0.0001, 
-                           control=list( fnscale=-1, parscale=argv$parscale))
+                           control = list( fnscale=-1, parscale=argv$parscale))
   
     thr            <- paropt$par[1]
     kth            <- as.integer( paropt$par[2])
@@ -338,7 +339,8 @@ for (t in 1:n_tseq) { # MAIN LOOP @@BEGIN@@ (jump to @@END@@)
                 F)
 
     flag[ix] <- res[[1]]
-    print(paste(length(ix),length(which(res[[1]]==1))))
+    nge_i <- length( which( res[[1]] == 1))
+    if (nge_i == 0) break
   }
 
   a <- length( which( ge[ixe] == 1 & flag[ixe] == 1))
@@ -358,44 +360,53 @@ for (t in 1:n_tseq) { # MAIN LOOP @@BEGIN@@ (jump to @@END@@)
   if (argv$debug) {
 
     if (argv$variable == "T") {
-      ffout <- paste0( "dqc_prof_",format( tseq[t],format="%Y%m%d",tz="UTC"),".png")
+      ffout <- paste0( argv$ffout_png1,"_",format( tseq[t],format=argv$ffout_date.format,tz="UTC"),".png")
       png(file=ffout,width=800,height=800)
       plot( obsToCheck_val, obsToCheck_z, pch=21, bg="gray", col="gray", cex=1)
+#      points( obsToCheck_val[ixe], obsToCheck_z[ixe], pch=21, bg="gray", col="green", cex=2, lwd=3)
       ix <- which(ge==1)
-      points( obsToCheck_val[ix], obsToCheck_z[ix], pch=21, bg="red", col="pink", cex=2)
+      points( obsToCheck_val[ix], obsToCheck_z[ix], pch=21, bg="red", col="red", cex=2, lwd=3)
       ix <- which(flag == 1)
       points( obsToCheck_val[ix], obsToCheck_z[ix], pch=4, col="black", cex=2)
       ix <- which(flag == 11 | flag == 12)
       points( obsToCheck_val[ix], obsToCheck_z[ix], col = "blue", cex=2, lwd=3)
       ix <- which(flag < 0)
       points( obsToCheck_val[ix], obsToCheck_z[ix], col = "cyan", cex=2, lwd=3)
+#      ix <- which(flag[ixe] == 0)
+#      points( obsToCheck_val[ixe[ix]], obsToCheck_z[ixe[ix]], col = "green", cex=2, lwd=3)
       dev.off()
     } else if (argv$variable == "RR") {
-      ffout <- paste0( "dqc_rr_",format( tseq[t],format="%Y%m%d",tz="UTC"),".png")
+      ffout <- paste0( argv$ffout_png1,"_",format( tseq[t],format=argv$ffout_date.format,tz="UTC"),".png")
       png(file=ffout,width=800,height=800)
       plot( obsToCheck_lat, obsToCheck_oval, pch=21, bg="gray", col="gray", cex=1)
+#      points( obsToCheck_lat[ixe], obsToCheck_oval[ixe], pch=21, bg="gray", col="green", cex=2, lwd=3)
       ix <- which(ge==1)
-      points( obsToCheck_lat[ix], obsToCheck_oval[ix], pch=21, bg="red", col="pink", cex=2)
+      points( obsToCheck_lat[ix], obsToCheck_oval[ix], pch=21, bg="red", col="red", cex=2, lwd=3)
       ix <- which(flag == 1)
       points( obsToCheck_lat[ix], obsToCheck_oval[ix], pch=4, col="black", cex=2)
       ix <- which(flag == 11 | flag == 12)
       points( obsToCheck_lat[ix], obsToCheck_oval[ix], col = "blue", cex=2, lwd=3)
       ix <- which(flag < 0)
       points( obsToCheck_lat[ix], obsToCheck_oval[ix], col = "cyan", cex=2, lwd=3)
+#      ix <- which(flag[ixe] == 0)
+#      points( obsToCheck_lat[ixe[ix]], obsToCheck_oval[ixe[ix]], col = "green", cex=2, lwd=3)
       dev.off()
     }
 
-    ffout <- paste0( "dqc_map_",format( tseq[t],format="%Y%m%d",tz="UTC"),".png")
+    ffout <- paste0( argv$ffout_png2,"_",format( tseq[t],format=argv$ffout_date.format,tz="UTC"),".png")
     png(file=ffout,width=800,height=800)
     plot( obsToCheck_lon, obsToCheck_lat, pch=21, bg="gray", col="gray", cex=1)
+#    points( obsToCheck_lon[ixe], obsToCheck_lat[ixe], pch=21, bg="gray", col="green", cex=2, lwd=3)
     ix <- which(ge==1)
-    points( obsToCheck_lon[ix], obsToCheck_lat[ix], pch=21, bg="red", col="pink", cex=2)
+    points( obsToCheck_lon[ix], obsToCheck_lat[ix], pch=21, bg="red", col="red", cex=2, lwd=3)
     ix <- which(flag == 1)
     points( obsToCheck_lon[ix], obsToCheck_lat[ix], pch=4, col="black", cex=2)
     ix <- which(flag == 11 | flag == 12)
     points( obsToCheck_lon[ix], obsToCheck_lat[ix], col = "blue", cex=2, lwd=3)
     ix <- which(flag < 0)
     points( obsToCheck_lon[ix], obsToCheck_lat[ix], col = "cyan", cex=2, lwd=3)
+#    ix <- which(flag[ixe] == 0)
+#    points( obsToCheck_lon[ixe[ix]], obsToCheck_lat[ixe[ix]], col = "green", cex=2, lwd=3)
     dev.off()
   }
 
@@ -417,7 +428,6 @@ for (t in 1:n_tseq) { # MAIN LOOP @@BEGIN@@ (jump to @@END@@)
                round(pofa,4),";", 
                round(ets,4),";\n")) 
 
-q()
 }
 
 #------------------------------------------------------------------------------
