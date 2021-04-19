@@ -1,5 +1,5 @@
 #+ Insert Gross-Errors
-insert_ge <- function( val, prid, variable,
+insert_ge <- function( val, prid, min0, max0,
                        mina, maxa, minv, maxv, 
                        PGE, PGE_prid,
                        strategy) {
@@ -28,9 +28,7 @@ insert_ge <- function( val, prid, variable,
   res <- val
 
   if ( strategy == 0) {
-    if ( variable == "T")       { a <- -60; b <-  60}
-    else if ( variable == "RR") { a <- 0; b <- 2*max(val,na.rm=T)}
-    res[ix] <- a + u * ( b - a)
+    res[ix] <- min0 + u * ( max0 - min0)
   } else if ( strategy == 1) {
     a <- mina[ix]
     b <- pmin( (mina[ix]/2), (2*minv[ix]), na.rm=T)

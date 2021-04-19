@@ -106,14 +106,10 @@ rm( res)
 #  Read Input files / elaboration
 
 n     <- 0
-ui    <- diag(6)
-first <- T
-
-paropt_tot <- array( data=NA, dim=c( n_tseq, 6))
 
 # prepare output file
 cat( file=argv$ffout, append=F,
-     "time;p;thr;kth;inner_r;outer_r;num_max_outer;vertical_scale;a;b;c;d;acc;pod;pofa;ets;\n")
+     "time;p;num_min_outer;num_max_outer;inner_radius;outer_radius;kth;vertical_scale;thr;a_delta;v_delta;a_fact;v_fact;boxcox_par;a;b;c;d;acc;pod;pofa;ets;\n")
 
 # loop over all the n_tseq times
 for (t in 1:n_tseq) { # MAIN LOOP @@BEGIN@@ (jump to @@END@@)
@@ -162,17 +158,18 @@ for (t in 1:n_tseq) { # MAIN LOOP @@BEGIN@@ (jump to @@END@@)
   xy <- spTransform( SpatialPoints( cbind( obsToCheck_lon, obsToCheck_lat), proj4string=CRS(proj4.wgs84)), CRS(proj4.lcc))
   obsToCheck_x <- attr( xy, "coords")[,1]
   obsToCheck_y <- attr( xy, "coords")[,2]
+  k <- 20
   nn2 <- nn2( cbind( obsToCheck_x, obsToCheck_y), 
               query = cbind( obsToCheck_x, obsToCheck_y), 
-              k = 10) 
+              k = k) 
 #              searchtype = "radius", radius = 500000)
 
   cat( paste0( "number of observations =", p, "\n"))
-  cat( "average distances between a station and its nearest k-th station (k=1,2,...,10)\n")
-  for (i in 1:10) cat( paste0( round( median(nn2$nn.dists[,i])), " "))
+  cat( "average distances between a station and its nearest k-th station (k=1,2,..)\n")
+  for (i in 1:k) cat( paste0( round( median(nn2$nn.dists[,i])), " "))
   cat("\n")
 
-  if (argv$debug) {
+  if (argv$figs) {
     png( file="domain.png", width=800, height=800)
     plot( obsToCheck_lon, obsToCheck_lat)
     dev.off()
@@ -181,70 +178,54 @@ for (t in 1:n_tseq) { # MAIN LOOP @@BEGIN@@ (jump to @@END@@)
   #............................................................................
   # prepare vectors of valid and admissible values
 
-  if (argv$variable == "T") {
+  theta <- c( argv$num_min_outer, argv$num_max_outer, argv$inner_radius, 
+               argv$outer_radius, argv$kth, argv$vertical_scale, argv$thr,
+               argv$a_delta, argv$v_delta, argv$a_fact, argv$v_fact,
+               argv$boxcox.lambda)
 
-    background_elab_type.sct <- "VerticalProfileTheilSen"
+  obsToCheck_mina <- pmin( pmax( obsToCheck_val - argv$a_delta,                 argv$plau_min), 
+                           pmax( obsToCheck_val - argv$a_fact * obsToCheck_val, argv$plau_min))
+  obsToCheck_maxa <- pmax( pmin( obsToCheck_val + argv$a_delta,                 argv$plau_max),
+                           pmin( obsToCheck_val + argv$a_fact * obsToCheck_val, argv$plau_max))
+  obsToCheck_minv <- pmin( pmax( obsToCheck_val - argv$v_delta,                 argv$plau_min), 
+                           pmax( obsToCheck_val - argv$v_fact * obsToCheck_val, argv$plau_min))
+  obsToCheck_maxv <- pmax( pmin( obsToCheck_val + argv$v_delta,                 argv$plau_max),
+                           pmin( obsToCheck_val + argv$v_fact * obsToCheck_val, argv$plau_max))
 
-    obsToCheck_mina <- obsToCheck_val - argv$Ta_delta
-    obsToCheck_maxa <- obsToCheck_val + argv$Ta_delta
-    obsToCheck_minv <- obsToCheck_val - argv$Tv_delta
-    obsToCheck_maxv <- obsToCheck_val + argv$Tv_delta
+  if ( !is.na( argv$PGE) & argv$PGE > 0) {
 
-    if ( !is.na( argv$PGE) & argv$PGE > 0) {
+    if ( any( is.na( argv$PGE_prid))) argv$PGE_prid <- unique(obsToCheck_prid)
 
-      if ( any( is.na( argv$PGE_prid))) argv$PGE_prid <- unique(obsToCheck_prid)
+    res <- insert_ge( obsToCheck_val, obsToCheck_prid,
+                      argv$ge0_min, argv$ge0_max,
+                      obsToCheck_mina, obsToCheck_maxa, 
+                      obsToCheck_minv, obsToCheck_maxv,
+                      argv$PGE, argv$PGE_prid, argv$ge_strategy)
 
-      res <- insert_ge( obsToCheck_val, obsToCheck_prid, argv$variable,
-                        obsToCheck_mina, obsToCheck_maxa, 
-                        obsToCheck_minv, obsToCheck_maxv,
-                        argv$PGE, argv$PGE_prid, 1)
+    ge             <- res$ge
+    obsToCheck_val <- res$val 
 
-      ge             <- res$ge
-      obsToCheck_val <- res$val 
+  }
 
-      obsToCheck_mina <- obsToCheck_val - argv$Ta_delta
-      obsToCheck_maxa <- obsToCheck_val + argv$Ta_delta
-      obsToCheck_minv <- obsToCheck_val - argv$Tv_delta 
-      obsToCheck_maxv <- obsToCheck_val + argv$Tv_delta
-    }
+  obsToCheck_mina <- pmin( pmax( obsToCheck_val - argv$a_delta,                 argv$plau_min), 
+                           pmax( obsToCheck_val - argv$a_fact * obsToCheck_val, argv$plau_min))
+  obsToCheck_maxa <- pmax( pmin( obsToCheck_val + argv$a_delta,                 argv$plau_max),
+                           pmin( obsToCheck_val + argv$a_fact * obsToCheck_val, argv$plau_max))
+  obsToCheck_minv <- pmin( pmax( obsToCheck_val - argv$v_delta,                 argv$plau_min), 
+                           pmax( obsToCheck_val - argv$v_fact * obsToCheck_val, argv$plau_min))
+  obsToCheck_maxv <- pmax( pmin( obsToCheck_val + argv$v_delta,                 argv$plau_max),
+                           pmin( obsToCheck_val + argv$v_fact * obsToCheck_val, argv$plau_max))
 
-  } else if (argv$variable == "RR") {
+  obsToCheck_oval <- obsToCheck_val
 
-    background_elab_type.sct <- "MedianOuterCircle" 
-
-    obsToCheck_mina <- pmin( pmax( obsToCheck_val - argv$RRa_delta, 0), 
-                             pmax( obsToCheck_val - argv$RRa_fact * obsToCheck_val, 0))
-    obsToCheck_maxa <- pmax( obsToCheck_val + argv$RRa_delta, obsToCheck_val + argv$RRa_fact * obsToCheck_val)
-    obsToCheck_minv <- pmin( pmax( obsToCheck_val - argv$RRv_delta, 0), 
-                             pmax( obsToCheck_val - argv$RRv_fact * obsToCheck_val, 0))
-    obsToCheck_maxv <- pmax( obsToCheck_val + argv$RRv_delta, obsToCheck_val + argv$RRv_fact * obsToCheck_val)
-
-    if ( !is.na( argv$PGE) & argv$PGE > 0) {
-
-      if ( any( is.na( argv$PGE_prid))) argv$PGE_prid <- unique(obsToCheck_prid)
-
-      res <- insert_ge( obsToCheck_val, obsToCheck_prid, argv$variable,
-                        obsToCheck_mina, obsToCheck_maxa, 
-                        obsToCheck_minv, obsToCheck_maxv,
-                        argv$PGE, argv$PGE_prid, 2)
-
-      ge             <- res$ge
-      obsToCheck_val <- res$val 
-
-      obsToCheck_mina <- pmin( pmax( obsToCheck_val - argv$RRa_delta, 0), 
-                               pmax( obsToCheck_val - argv$RRa_fact * obsToCheck_val, 0))
-      obsToCheck_maxa <- pmax( obsToCheck_val + argv$RRa_delta, obsToCheck_val + argv$RRa_fact * obsToCheck_val)
-      obsToCheck_minv <- pmin( pmax( obsToCheck_val - argv$RRv_delta, 0), 
-                               pmax( obsToCheck_val - argv$RRv_fact * obsToCheck_val, 0))
-      obsToCheck_maxv <- pmax( obsToCheck_val + argv$RRv_delta, obsToCheck_val + argv$RRv_fact * obsToCheck_val)
-    }
+  if ( argv$transformation) {
 
     obsToCheck_mina <- boxcox( x=obsToCheck_mina, lambda=argv$boxcox.lambda)
     obsToCheck_maxa <- boxcox( x=obsToCheck_maxa, lambda=argv$boxcox.lambda)
     obsToCheck_minv <- boxcox( x=obsToCheck_minv, lambda=argv$boxcox.lambda)
     obsToCheck_maxv <- boxcox( x=obsToCheck_maxv, lambda=argv$boxcox.lambda)
-    obsToCheck_oval <- obsToCheck_val
     obsToCheck_val  <- boxcox( x=obsToCheck_val,  lambda=argv$boxcox.lambda)
+
   }
 
   ixe <- 1:p
@@ -254,45 +235,41 @@ for (t in 1:n_tseq) { # MAIN LOOP @@BEGIN@@ (jump to @@END@@)
   }
 
   #............................................................................
-  # Optimization (or testing) 
+  # Optimization 
 
-  # OPTimization if argv$theta is not defined
-  if ( any( is.na( argv$theta))) {
+  # OPTimization if argv$theta_i is not defined
+  if ( !any( is.na( argv$theta_i))) {
 
-    if (first) {
-      theta <- argv$theta0
-    } else { 
-      theta <- paropt$par
-    }
+    maxl <- 100
+    theta_l <- array( data=NA, dim=c(maxl,12))
+    theta_l[1,] <- theta
 
-    paropt <- constrOptim( theta = theta, 
-                           f     = costf_sctres, 
-                           ui    = ui, 
-                           ci    = argv$ci, 
-                           grad  = NULL,
-                           outer.eps = 0.0001, 
-                           control = list( fnscale=-1, parscale=argv$parscale))
+    for (l in 2:100) {
+
+      for (j in 1:length(argv$theta_i))  {
+
+        i <- argv$theta_i[j]
+        min <- max( c( argv$theta_i_min[j], theta[i]/2), na.rm=T)
+        max <- min( c( argv$theta_i_max[j], theta[i]*2), na.rm=T)
+       
+        paropt <- optimize( costf_sctres_justone, lower=min, upper=max, tol = 0.0001,  maximum=T, theta=c(theta,i))
+
+        theta[i] <- as.numeric(paropt[1])
   
-    thr            <- paropt$par[1]
-    kth            <- as.integer( paropt$par[2])
-    inner_radius   <- paropt$par[3]
-    outer_radius   <- max( c( paropt$par[3], paropt$par[4]))
-    num_max_outer  <- as.integer( paropt$par[5])
-    vertical_scale <- paropt$par[6]
+      }
 
-  # TEST a set of parameters if argv$theta is defined
-  } else {
+      theta_l[l,] <- theta
+      
+      theta_devperc <- abs(theta_l[l,] - theta_l[l-1,]) / abs(theta_l[l,])
+      theta_devperc[which(abs(theta_l[l,])==0)] <- 0.00001
+      if ( all( theta_devperc < 0.01)) break
 
-    thr            <- argv$theta[1]
-    kth            <- as.integer( argv$theta[2])
-    inner_radius   <- argv$theta[3]
-    outer_radius   <- max( c( argv$theta[3], argv$theta[4]))
-    num_max_outer  <- as.integer( argv$theta[5])
-    vertical_scale <- argv$theta[6]
+    }
 
   }
 
-  paropt_tot[t,] <- c( thr, kth, inner_radius, outer_radius, num_max_outer, vertical_scale)
+  #............................................................................
+  # Test the parameters 
 
   flag <- rep( NA, p)
 
@@ -302,45 +279,67 @@ for (t in 1:n_tseq) { # MAIN LOOP @@BEGIN@@ (jump to @@END@@)
 
     obsToCheck_lat_i  <- obsToCheck_lat[ix]
     obsToCheck_lon_i  <- obsToCheck_lon[ix]
-    obsToCheck_val_i  <- obsToCheck_val[ix]
+    obsToCheck_oval_i  <- obsToCheck_oval[ix]
     obsToCheck_chk_i  <- obsToCheck_chk[ix]
     obsToCheck_z_i    <- obsToCheck_z[ix]
-    obsToCheck_mina_i <- obsToCheck_mina[ix]
-    obsToCheck_maxa_i <- obsToCheck_maxa[ix]
-    obsToCheck_minv_i <- obsToCheck_minv[ix]
-    obsToCheck_maxv_i <- obsToCheck_maxv[ix]
+
+    obsToCheck_val_i  <- obsToCheck_oval_i
+    obsToCheck_mina_i <- pmin( pmax( obsToCheck_oval_i - theta[8],                      argv$plau_min), 
+                               pmax( obsToCheck_oval_i - theta[10] * obsToCheck_oval_i, argv$plau_min))
+    obsToCheck_maxa_i <- pmax( pmin( obsToCheck_oval_i + theta[8],                      argv$plau_max),
+                               pmin( obsToCheck_oval_i + theta[10] * obsToCheck_oval_i, argv$plau_max))
+    obsToCheck_minv_i <- pmin( pmax( obsToCheck_oval_i - theta[9],                      argv$plau_min), 
+                               pmax( obsToCheck_oval_i - theta[11] * obsToCheck_oval_i, argv$plau_min))
+    obsToCheck_maxv_i <- pmax( pmin( obsToCheck_oval_i + theta[9],                      argv$plau_max),
+                               pmin( obsToCheck_oval_i + theta[11] * obsToCheck_oval_i, argv$plau_max))
+
+    if ( argv$transformation) {
+
+      obsToCheck_mina_i <- boxcox( x=obsToCheck_mina_i, lambda=theta[12])
+      obsToCheck_maxa_i <- boxcox( x=obsToCheck_maxa_i, lambda=theta[12])
+      obsToCheck_minv_i <- boxcox( x=obsToCheck_minv_i, lambda=theta[12])
+      obsToCheck_maxv_i <- boxcox( x=obsToCheck_maxv_i, lambda=theta[12])
+      obsToCheck_val_i  <- boxcox( x=obsToCheck_val_i,  lambda=theta[12])
+
+    }
+
     p_i <- length(ix)
+
     res <- sct_resistant(
-                points = Points( obsToCheck_lat_i,
-                                 obsToCheck_lon_i,
-                                 obsToCheck_z_i),
-                obsToCheck_val_i,
-                obsToCheck_chk_i,
-                rep( background_values, p_i),
-                background_elab_type.sct,
-                argv$num_min_outer.sct,
-                num_max_outer,
-                inner_radius,
-                outer_radius,
-                100,
-                argv$num_min_prof.sct,
-                argv$min_elev_diff.sct,
-                argv$min_horizontal_scale.sct,
-                argv$max_horizontal_scale.sct,
-                kth,
-                vertical_scale,
-                obsToCheck_mina_i,
-                obsToCheck_maxa_i,
-                obsToCheck_minv_i,
-                obsToCheck_maxv_i,
-                rep( argv$eps2.sct, p_i),
-                rep( thr, p_i),
-                rep( thr, p_i),
-                F)
+              points = Points( obsToCheck_lat_i,
+                               obsToCheck_lon_i,
+                               obsToCheck_z_i),
+              obsToCheck_val_i,
+              obsToCheck_chk_i,
+              rep( background_values, p_i),
+              argv$background_elab_type,
+              as.integer(theta[1]), # num_min_outer,
+              as.integer(theta[2]), # num_max_outer
+              theta[3], # inner_radius
+              theta[4], # outer_radius
+              100,
+              argv$num_min_prof, 
+              argv$min_elev_diff,
+              argv$min_horizontal_scale,
+              argv$max_horizontal_scale,
+              as.integer(theta[5]), # kth
+              theta[6], # vertical_scale
+              obsToCheck_mina_i, 
+              obsToCheck_maxa_i,
+              obsToCheck_minv_i,
+              obsToCheck_maxv_i,
+              rep( argv$eps2, p_i),
+              rep( theta[7], p_i), # thr
+              rep( theta[7], p_i), # thr
+              F)
 
     flag[ix] <- res[[1]]
+
     nge_i <- length( which( res[[1]] == 1))
+    print( paste("i nge_i",i,nge_i))
+
     if (nge_i == 0) break
+
   }
 
   a <- length( which( ge[ixe] == 1 & flag[ixe] == 1))
@@ -349,51 +348,67 @@ for (t in 1:n_tseq) { # MAIN LOOP @@BEGIN@@ (jump to @@END@@)
   d <- length( which( ge[ixe] == 0 & flag[ixe] == 0))
   rand <- (a+c) * (a+b) / (a+b+c+d)
   ets  <- (a-rand) / (a+b+c-rand)
+  if ((a+b+c-rand)==0) ets <- 0
   acc  <- (a+d)/(a+b+c+d)
   pod  <- a/(a+c)
   pofa <- b/(b+d)
 
-  print( paste("---- thr kth inner_radius outer_radius num_max_outer dz= ", round(thr,4), kth, round(inner_radius), round(outer_radius), num_max_outer, round(vertical_scale)))
+  print( "---- 1 num_min_outer, 2 num_max_outer, 3 inner_radius, 4 outer_radius, 5 kth, 6 vertical_scale, 7 thr, 8 a_delta, 9 v_delta, 10 a_fact, 11 v_fact, 12 boxcox_par")
+  print(theta)
   print( paste0("TOT bad / a b c d= ", length(ixe), " ", length(which( ge==1)), " / ", a, " ", b, " ", c, " ", d))
   print( paste0("acc pod pofa ets= ", round(acc,2), " ", round(pod,2), " ", round(pofa,2), " ",round(ets,2)))
 
-  if (argv$debug) {
+  if (argv$figs) {
 
-    if (argv$variable == "T") {
-      ffout <- paste0( argv$ffout_png1,"_",format( tseq[t],format=argv$ffout_date.format,tz="UTC"),".png")
-      png(file=ffout,width=800,height=800)
-      plot( obsToCheck_val, obsToCheck_z, pch=21, bg="gray", col="gray", cex=1)
-#      points( obsToCheck_val[ixe], obsToCheck_z[ixe], pch=21, bg="gray", col="green", cex=2, lwd=3)
-      ix <- which(ge==1)
-      points( obsToCheck_val[ix], obsToCheck_z[ix], pch=21, bg="red", col="red", cex=2, lwd=3)
-      ix <- which(flag == 1)
-      points( obsToCheck_val[ix], obsToCheck_z[ix], pch=4, col="black", cex=2)
-      ix <- which(flag == 11 | flag == 12)
-      points( obsToCheck_val[ix], obsToCheck_z[ix], col = "blue", cex=2, lwd=3)
-      ix <- which(flag < 0)
-      points( obsToCheck_val[ix], obsToCheck_z[ix], col = "cyan", cex=2, lwd=3)
+    ffout <- paste0( argv$ffout_png1,"_",format( tseq[t],format=argv$ffout_date.format,tz="UTC"),".png")
+    png(file=ffout,width=800,height=800)
+    plot( obsToCheck_oval, obsToCheck_z, pch=21, bg="gray", col="gray", cex=1)
+#      points( obsToCheck_oval[ixe], obsToCheck_z[ixe], pch=21, bg="gray", col="green", cex=2, lwd=3)
+    ix <- which(ge==1)
+    points( obsToCheck_oval[ix], obsToCheck_z[ix], pch=21, bg="red", col="red", cex=2, lwd=3)
+    ix <- which(flag == 1)
+    points( obsToCheck_oval[ix], obsToCheck_z[ix], pch=4, col="black", cex=2)
+    ix <- which(flag == 11 | flag == 12)
+    points( obsToCheck_oval[ix], obsToCheck_z[ix], col = "blue", cex=2, lwd=3)
+    ix <- which(flag < 0)
+    points( obsToCheck_oval[ix], obsToCheck_z[ix], col = "cyan", cex=2, lwd=3)
 #      ix <- which(flag[ixe] == 0)
-#      points( obsToCheck_val[ixe[ix]], obsToCheck_z[ixe[ix]], col = "green", cex=2, lwd=3)
-      dev.off()
-    } else if (argv$variable == "RR") {
-      ffout <- paste0( argv$ffout_png1,"_",format( tseq[t],format=argv$ffout_date.format,tz="UTC"),".png")
-      png(file=ffout,width=800,height=800)
-      plot( obsToCheck_lat, obsToCheck_oval, pch=21, bg="gray", col="gray", cex=1)
-#      points( obsToCheck_lat[ixe], obsToCheck_oval[ixe], pch=21, bg="gray", col="green", cex=2, lwd=3)
-      ix <- which(ge==1)
-      points( obsToCheck_lat[ix], obsToCheck_oval[ix], pch=21, bg="red", col="red", cex=2, lwd=3)
-      ix <- which(flag == 1)
-      points( obsToCheck_lat[ix], obsToCheck_oval[ix], pch=4, col="black", cex=2)
-      ix <- which(flag == 11 | flag == 12)
-      points( obsToCheck_lat[ix], obsToCheck_oval[ix], col = "blue", cex=2, lwd=3)
-      ix <- which(flag < 0)
-      points( obsToCheck_lat[ix], obsToCheck_oval[ix], col = "cyan", cex=2, lwd=3)
-#      ix <- which(flag[ixe] == 0)
-#      points( obsToCheck_lat[ixe[ix]], obsToCheck_oval[ixe[ix]], col = "green", cex=2, lwd=3)
-      dev.off()
-    }
+#      points( obsToCheck_oval[ixe[ix]], obsToCheck_z[ixe[ix]], col = "green", cex=2, lwd=3)
+    dev.off()
 
     ffout <- paste0( argv$ffout_png2,"_",format( tseq[t],format=argv$ffout_date.format,tz="UTC"),".png")
+    png(file=ffout,width=800,height=800)
+    plot( obsToCheck_lat, obsToCheck_oval, pch=21, bg="gray", col="gray", cex=1)
+#      points( obsToCheck_lat[ixe], obsToCheck_oval[ixe], pch=21, bg="gray", col="green", cex=2, lwd=3)
+    ix <- which(ge==1)
+    points( obsToCheck_lat[ix], obsToCheck_oval[ix], pch=21, bg="red", col="red", cex=2, lwd=3)
+    ix <- which(flag == 1)
+    points( obsToCheck_lat[ix], obsToCheck_oval[ix], pch=4, col="black", cex=2)
+    ix <- which(flag == 11 | flag == 12)
+    points( obsToCheck_lat[ix], obsToCheck_oval[ix], col = "blue", cex=2, lwd=3)
+    ix <- which(flag < 0)
+    points( obsToCheck_lat[ix], obsToCheck_oval[ix], col = "cyan", cex=2, lwd=3)
+#      ix <- which(flag[ixe] == 0)
+#      points( obsToCheck_lat[ixe[ix]], obsToCheck_oval[ixe[ix]], col = "green", cex=2, lwd=3)
+    dev.off()
+
+    ffout <- paste0( argv$ffout_png3,"_",format( tseq[t],format=argv$ffout_date.format,tz="UTC"),".png")
+    png(file=ffout,width=800,height=800)
+    plot( obsToCheck_lon, obsToCheck_oval, pch=21, bg="gray", col="gray", cex=1)
+#      points( obsToCheck_lon[ixe], obsToCheck_oval[ixe], pch=21, bg="gray", col="green", cex=2, lwd=3)
+    ix <- which(ge==1)
+    points( obsToCheck_lon[ix], obsToCheck_oval[ix], pch=21, bg="red", col="red", cex=2, lwd=3)
+    ix <- which(flag == 1)
+    points( obsToCheck_lon[ix], obsToCheck_oval[ix], pch=4, col="black", cex=2)
+    ix <- which(flag == 11 | flag == 12)
+    points( obsToCheck_lon[ix], obsToCheck_oval[ix], col = "blue", cex=2, lwd=3)
+    ix <- which(flag < 0)
+    points( obsToCheck_lon[ix], obsToCheck_oval[ix], col = "cyan", cex=2, lwd=3)
+#      ix <- which(flag[ixe] == 0)
+#      points( obsToCheck_lon[ixe[ix]], obsToCheck_oval[ixe[ix]], col = "green", cex=2, lwd=3)
+    dev.off()
+
+    ffout <- paste0( argv$ffout_png4,"_",format( tseq[t],format=argv$ffout_date.format,tz="UTC"),".png")
     png(file=ffout,width=800,height=800)
     plot( obsToCheck_lon, obsToCheck_lat, pch=21, bg="gray", col="gray", cex=1)
 #    points( obsToCheck_lon[ixe], obsToCheck_lat[ixe], pch=21, bg="gray", col="green", cex=2, lwd=3)
@@ -408,17 +423,24 @@ for (t in 1:n_tseq) { # MAIN LOOP @@BEGIN@@ (jump to @@END@@)
 #    ix <- which(flag[ixe] == 0)
 #    points( obsToCheck_lon[ixe[ix]], obsToCheck_lat[ixe[ix]], col = "green", cex=2, lwd=3)
     dev.off()
+
   }
 
   cat( file=argv$ffout, append=T,
        paste0( format( tseq[t], format=argv$ffout_date.format, tz="GMT"),";", 
                p,";",
-               round(thr,3),";",
-               kth,";",
-               round(inner_radius),";",
-               round(outer_radius),";",
-               num_max_outer,";",
-               round(vertical_scale),";", 
+               round(theta[1]),";",
+               round(theta[2]),";",
+               round(theta[3]),";",
+               round(theta[4]),";",
+               round(theta[5]),";",
+               round(theta[6]),";",
+               round(theta[7],3),";",
+               round(theta[8],1),";",
+               round(theta[9],1),";",
+               round(theta[10],2),";",
+               round(theta[11],2),";",
+               round(theta[12],2),";",
                a,";", 
                b,";", 
                c,";", 

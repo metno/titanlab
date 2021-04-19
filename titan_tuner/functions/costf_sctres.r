@@ -47,7 +47,7 @@ costf_sctres <- function( par) {
 
   n<- length(flag)
   nodd <- length( which(flag %in% c(11,12,-999)))
-  if ( nodd<(0.1*length(ixe))) {
+  if ( nodd<(0.01*length(ixe))) {
     penalty <- 0
   } else {
     penalty <- nodd #( (n-nodd) / (0.01*n))**2

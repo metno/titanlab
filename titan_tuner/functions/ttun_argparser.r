@@ -125,15 +125,29 @@ p<- add_argument(p, "--ffout",
                  type="character",
                  default="out.txt")
 
+p<- add_argument(p, "--figs",
+                 help="output png files",
+                 flag=T)
+
 p<- add_argument(p, "--ffout_png1",
                  help="output file (path+part of the name) for png1. Used only in debug mode. Note that the name is automatically completed with date/time and the extension .png",
                  type="character",
                  default="out_fig1")
 
 p<- add_argument(p, "--ffout_png2",
-                 help="output file (path+part of the name) for png1. Used only in debug mode. Note that the name is automatically completed with date/time and the extension .png",
+                 help="output file (path+part of the name) for png2. Used only in debug mode. Note that the name is automatically completed with date/time and the extension .png",
                  type="character",
                  default="out_fig2")
+
+p<- add_argument(p, "--ffout_png3",
+                 help="output file (path+part of the name) for png3. Used only in debug mode. Note that the name is automatically completed with date/time and the extension .png",
+                 type="character",
+                 default="out_fig3")
+
+p<- add_argument(p, "--ffout_png4",
+                 help="output file (path+part of the name) for png4. Used only in debug mode. Note that the name is automatically completed with date/time and the extension .png",
+                 type="character",
+                 default="out_fig4")
 
 p<- add_argument(p, "--year_string",
                  help="string, placeholder for year",
@@ -168,35 +182,65 @@ p<- add_argument(p, "--variable",
                  type="character",
                  default="T")
 
-p<- add_argument(p, "--num_min_prof.sct",
+p<- add_argument(p, "--num_min_prof",
                  help="",
                  type="integer",
                  default=10)
 
-p<- add_argument(p, "--min_elev_diff.sct",
+p<- add_argument(p, "--min_elev_diff",
                  help="",
                  type="numeric",
                  default=100)
 
-p<- add_argument(p, "--min_horizontal_scale.sct",
+p<- add_argument(p, "--min_horizontal_scale",
                  help="",
                  type="numeric",
                  default=1000)
 
-p<- add_argument(p, "--max_horizontal_scale.sct",
+p<- add_argument(p, "--max_horizontal_scale",
                  help="",
                  type="numeric",
                  default=100000)
 
-p<- add_argument(p, "--eps2.sct",
+p<- add_argument(p, "--eps2",
                  help="",
                  type="numeric",
                  default=0.5)
 
-p<- add_argument(p, "--num_min_outer.sct",
+p<- add_argument(p, "--num_min_outer",
                  help="minimum number of observations that need to be present in the outer circle",
                  type="integer",
                  default=5)
+
+p<- add_argument(p, "--num_max_outer",
+                 help="",
+                 type="integer",
+                 default=25)
+
+p<- add_argument(p, "--kth",
+                 help="kth",
+                 type="integer",
+                 default=5)
+
+p<- add_argument(p, "--inner_radius",
+                 help="inner_radius",
+                 type="numeric",
+                 default=10000)
+
+p<- add_argument(p, "--outer_radius",
+                 help="outer_radius",
+                 type="numeric",
+                 default=100000)
+
+p<- add_argument(p, "--vertical_scale",
+                 help="",
+                 type="numeric",
+                 default=400)
+
+p<- add_argument(p, "--thr",
+                 help="",
+                 type="numeric",
+                 default=3)
 
 p<- add_argument(p, "--boxcox.lambda",
                  help="Box-Cox transformation parameter",
@@ -216,63 +260,108 @@ p<- add_argument(p, "--PGE_prid",
 
 #..............................................................................
 
-p<- add_argument(p, "--ci",
-                 help="constraint vector (1st=thr, 2nd=kth, 3rd=inner_radius(m), 4th=outer_radius(m), 5th=num_max_outer, 6th=vertical_scale(m)). The optimized value of a parameter is forced to be greater than the specified value. More details in constrOptim, see ci: constaint vector.",
-                 type="numeric",
-                 default=c( 0.5, 2, 1000, 1000, 10, 100),
-                 nargs=6)
+#p<- add_argument(p, "--ci",
+#                 help="constraint vector (1st=thr, 2nd=kth, 3rd=inner_radius(m), 4th=outer_radius(m), 5th=num_max_outer, 6th=vertical_scale(m)). The optimized value of a parameter is forced to be greater than the specified value. More details in constrOptim, see ci: constaint vector.",
+#                 type="numeric",
+#                 default=c( 0.5, 2, 1000, 1000, 10, 100),
+#                 nargs=6)
 
-p<- add_argument(p, "--theta0",
-                 help="initialization vector (1st=thr, 2nd=kth, 3rd=inner_radius(m), 4th=outer_radius(m), 5th=num_max_outer, 6th=vertical_scale(m)). Initial value for each parameter. More details in constrOptim help.",
-                 type="numeric",
-                 default=c( 3, 4, 10000, 100000, 50, 250),
-                 nargs=6)
+#p<- add_argument(p, "--theta0",
+#                 help="initialization vector (1st=thr, 2nd=kth, 3rd=inner_radius(m), 4th=outer_radius(m), 5th=num_max_outer, 6th=vertical_scale(m)). Initial value for each parameter. More details in constrOptim help.",
+#                 type="numeric",
+#                 default=c( 3, 4, 10000, 100000, 50, 250),
+#                 nargs=6)
 
-p<- add_argument(p, "--theta",
-                 help="parameter vector (1st=thr, 2nd=kth, 3rd=inner_radius(m), 4th=outer_radius(m), 5th=num_max_outer, 6th=vertical_scale(m)). No optimization required, just testing.",
-                 type="numeric",
-                 default=NA,
-                 nargs=6)
+#p<- add_argument(p, "--theta",
+#                 help="parameter vector (1st=thr, 2nd=kth, 3rd=inner_radius(m), 4th=outer_radius(m), 5th=num_max_outer, 6th=vertical_scale(m)). No optimization required, just testing.",
+#                 type="numeric",
+#                 default=NA,
+#                 nargs=6)
 
-p<- add_argument(p, "--parscale",
-                 help="a vector of scaling values for the parameters (1st=thr, 2nd=kth, 3rd=inner_radius(m), 4th=outer_radius(m), 5th=num_max_outer, 6th=vertical_scale(m)). More details in optim help.",
-                 type="numeric",
-                 default=c( 1, 10, 10000, 10000, 10, 100),
-                 nargs=6)
+#p<- add_argument(p, "--parscale",
+#                 help="a vector of scaling values for the parameters (1st=thr, 2nd=kth, 3rd=inner_radius(m), 4th=outer_radius(m), 5th=num_max_outer, 6th=vertical_scale(m)). More details in optim help.",
+#                 type="numeric",
+#                 default=c( 1, 10, 10000, 10000, 10, 100),
+#                 nargs=6)
 
 #..............................................................................
 
-p<- add_argument(p, "--Ta_delta",
-                 help="temperature. Range of admissible values is plus/minus delta",
+p<- add_argument(p, "--a_delta",
+                 help="Range of admissible values is plus/minus delta",
                  type="numeric",
                  default=10)
 
-p<- add_argument(p, "--Tv_delta",
-                 help="temperature. Range of valid values is plus/minus delta",
+p<- add_argument(p, "--v_delta",
+                 help="Range of valid values is plus/minus delta",
                  type="numeric",
                  default=0.05)
 
-p<- add_argument(p, "--RRa_delta",
-                 help="temperature. Range of admissible values is plus/minus delta",
+p<- add_argument(p, "--a_fact",
+                 help="Range of admissible values is plus/minus (*delta)",
                  type="numeric",
                  default=10)
 
-p<- add_argument(p, "--RRv_delta",
-                 help="temperature. Range of valid values is plus/minus delta",
+p<- add_argument(p, "--v_fact",
+                 help="Range of valid values is plus/minus (*delta)",
                  type="numeric",
                  default=0.05)
 
-p<- add_argument(p, "--RRa_fact",
-                 help="temperature. Range of admissible values is plus/minus delta",
+p<- add_argument(p, "--plau_max",
+                 help="max plausible value",
                  type="numeric",
-                 default=10)
+                 default=1000)
 
-p<- add_argument(p, "--RRv_fact",
-                 help="temperature. Range of valid values is plus/minus delta",
+p<- add_argument(p, "--plau_min",
+                 help="min plausible value",
                  type="numeric",
-                 default=0.05)
+                 default=-1000)
 
 
+#..............................................................................
+
+p<- add_argument(p, "--background_elab_type",
+                 help="VerticalProfileTheilSen MedianOuterCircle",
+                 type="character",
+                 default=NA)
+
+p<- add_argument(p, "--theta_i",
+                 help="optimize one parameter at a time. The ids of the parameter are: 1 num_min_outer, 2 num_max_outer, 3 inner_radius, 4 outer_radius, 5 kth, 6 vertical_scale, 7 thr, 8 a_delta, 9 v_delta, 10 a_fact, 11 v_fact, 12 boxcox_par. More details in optim help.",
+                 type="numeric",
+                 default=NA,
+                 nargs=NA)
+
+p<- add_argument(p, "--theta_i_min",
+                 help="",
+                 type="numeric",
+                 default=NA,
+                 nargs=NA)
+
+p<- add_argument(p, "--theta_i_max",
+                 help="",
+                 type="numeric",
+                 default=NA,
+                 nargs=NA)
+
+p<- add_argument(p, "--transformation",
+                 help="Box-Cox transformation",
+                 flag=T)
+
+#..............................................................................
+
+p<- add_argument(p, "--ge_strategy",
+                 help="",
+                 type="numeric",
+                 default=0)
+
+p<- add_argument(p, "--ge0_min",
+                 help="",
+                 type="numeric",
+                 default=0)
+
+p<- add_argument(p, "--ge0_max",
+                 help="",
+                 type="numeric",
+                 default=1000)
 
 #..............................................................................
 
