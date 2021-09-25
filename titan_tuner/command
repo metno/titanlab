@@ -1,3 +1,5 @@
+./titan_tuner_buddycheck.r 2021-09-19T05 --date2 2021-09-19T05 --config_file etc/rr1_buddycheck_dense1.ini --ffin_template /home/cristianl/data/metproduction/products/yr_short/obs_rr1_20210918T05Z.txt --radius 15000 --min_std 1 --thr_vec 0.1 0.5 1 2 3 4  --ffout test_rad15000_minstd1.txt
+
 ./titan_tuner_sctres.r 2020-01-01 --date2 2020-01-01 --config_file etc/tg_ngcd.ini --ffin_template data/case_TG_date_%Y%m%d.txt --debug --ffout out_tg.txt
 
 ./titan_tuner_sctres.r 2020-01-01 --date2 2020-01-01 --config_file etc/rr_ngcd.ini --ffin_template data/case_RR_date_%Y%m%d.txt --debug --ffout out_rr.txt

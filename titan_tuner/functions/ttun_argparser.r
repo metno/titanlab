@@ -46,6 +46,9 @@ p <- add_argument(p, "--name_z",
                   help="label for elevations in input file",
                   type="character",
                   default="elev")
+p <- add_argument(p, "--z_na",
+                  help="use also observations without a z value",
+                  flag=T)
 
 p <- add_argument(p, "--name_val",
                   help="label for values in input file",
@@ -56,6 +59,12 @@ p <- add_argument(p, "--name_prid",
                   help="label for provider identifiers in input file",
                   type="character",
                   default="prid")
+
+p <- add_argument(p, "--prid_exclude",
+                  help="do not consider observations from the specified providers",
+                  type="integer",
+                  nargs=Inf,
+                  default=NA)
 
 p <- add_argument(p, "--name_cn",
                   help="label for countries in input file",
@@ -222,6 +231,7 @@ p<- add_argument(p, "--kth",
                  type="integer",
                  default=5)
 
+
 p<- add_argument(p, "--inner_radius",
                  help="inner_radius",
                  type="numeric",
@@ -257,6 +267,44 @@ p<- add_argument(p, "--PGE_prid",
                  type="numeric",
                  default=NA,
                  nargs=Inf)
+
+#------------------------------------------------------------------------------
+# buddy check
+
+p<- add_argument(p, "--radius",
+                 help="radius",
+                 type="numeric",
+                 default=10000)
+
+p<- add_argument(p, "--num_min",
+                 help="minimum number of obs",
+                 type="integer",
+                 default=10)
+
+#p<- add_argument(p, "--thr",
+#                 help="threshold",
+#                 type="numeric",
+#                 default=10)
+p<- add_argument(p, "--thr_vec",
+                 help="",
+                 type="numeric",
+                 nargs=Inf,
+                 default=NA)
+
+p<- add_argument(p, "--max_elev_diff",
+                 help="max elev diff",
+                 type="numeric",
+                 default=10)
+
+p<- add_argument(p, "--elev_gradient",
+                 help="elev gradient",
+                 type="numeric",
+                 default=-0.0065)
+
+p<- add_argument(p, "--min_std",
+                 help="minimum std",
+                 type="numeric",
+                 default=2)
 
 #..............................................................................
 

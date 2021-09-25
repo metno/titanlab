@@ -32,7 +32,11 @@ read_data <- function() {
   
   flag <- vector( mode="numeric", length=length(lat))
 
-  flag <- !is.na(val) & !is.na(lat) & !is.na(lon) & !is.na(z) & !is.na(prid)
+  if (argv$z_na) {
+    flag <- !is.na(val) & !is.na(lat) & !is.na(lon) & !is.na(prid)
+  } else {
+    flag <- !is.na(val) & !is.na(lat) & !is.na(lon) & !is.na(z) & !is.na(prid)
+  }
  
   if ( argv$name_cn %in% names) {
     flag <- flag & (cn %in% c("FI","NO","SE"))
@@ -40,11 +44,13 @@ read_data <- function() {
     cn <- val; cn[] <- 0   
   }
 
-  if ( any( !is.na(argv$ext))) {
+  if ( any( !is.na(argv$ext)))
     flag <- flag & 
             lon >= argv$ext[1] & lon <= argv$ext[2] & 
             lat >= argv$ext[3] & lat <= argv$ext[4]
-  }
+  
+  if ( any( !is.na( argv$prid_exclude)))
+    flag <- flag & !(prid %in% argv$prid_exclude)
   
   ix <- which( flag)
 
