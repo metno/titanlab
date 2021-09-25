@@ -240,29 +240,47 @@ for (t in 1:n_tseq) { # MAIN LOOP @@BEGIN@@ (jump to @@END@@)
   # OPTimization if argv$theta_i is not defined
   if ( !any( is.na( argv$theta_i))) {
 
-    maxl <- 100
+    maxl <- 3
     theta_l <- array( data=NA, dim=c(maxl,12))
     theta_l[1,] <- theta
 
-    for (l in 2:100) {
+    print( paste( ">>>>TIME  t=", format( tseq[t], format=argv$ffin_date.format,tz="GMT")))
+
+    for (l in 2:maxl) {
+
+      print( paste( "++++ ITERATION l=", l))
 
       for (j in 1:length(argv$theta_i))  {
 
         i <- argv$theta_i[j]
-        min <- max( c( argv$theta_i_min[j], theta[i]/2), na.rm=T)
-        max <- min( c( argv$theta_i_max[j], theta[i]*2), na.rm=T)
+        print( paste( "<<<< PARAMETER i (j/tot)=", i, "(",j,"/",length(argv$theta_i),")"))
+        min <- argv$theta_i_min[j]
+        max <- argv$theta_i_max[j]
+        if (i == 1) {         # num_min_outer
+          max <- min( c( argv$theta_i_max[j], (theta[2]-1)), na.rm=T)
+        } else if (i == 2)  { # num_max_outer
+          min <- max( c( argv$theta_i_min[j], (theta[1]+1)), na.rm=T)
+        } else if (i == 3)  { # inner_radius
+          max <- min( c( argv$theta_i_max[j], (theta[4]-1)), na.rm=T)
+        } else if (i == 4)  { # outer_radius
+          min <- max( c( argv$theta_i_min[j], (theta[3]+1)), na.rm=T)
+        }
+        print( paste( " PARAMETER value (before) =", theta[i]))
+        print( paste( " min/max =", min, max))
        
-        paropt <- optimize( costf_sctres_justone, lower=min, upper=max, tol = 0.001,  maximum=T, theta=c(theta,i))
+        paropt <- optimize( costf_sctres_justone, lower=min, upper=max, tol = 0.01,  maximum=T, theta=c(theta,i))
 
         theta[i] <- as.numeric(paropt[1])
+        
+        print( paste( "---- PARAMETER value (after)=", theta[i]))
   
       }
 
       theta_l[l,] <- theta
       
-      theta_devperc <- abs(theta_l[l,] - theta_l[l-1,]) / abs(theta_l[l,])
-      theta_devperc[which(abs(theta_l[l,])==0)] <- 0.00001
-      if ( all( theta_devperc < 0.01)) break
+#      theta_devperc <- abs(theta_l[l,] - theta_l[l-1,]) / abs(theta_l[l,])
+#      theta_devperc[which(abs(theta_l[l,])==0)] <- 0.00001
+#      if ( all( theta_devperc < 0.01)) break
 
     }
 
