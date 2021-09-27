@@ -420,6 +420,21 @@ p<- add_argument(p, "--ext",
                  nargs=Inf)
 
 #..............................................................................
+# plot results
+
+p<- add_argument(p, "--ffin_to_plot",
+                 help="files to plot",
+                 type="character",
+                 default=NA,
+                 nargs=Inf)
+
+p<- add_argument(p, "--ffoutpref_plot",
+                 help="commont part of the output file names",
+                 type="character",
+                 default="./out")
+
+
+#..............................................................................
 p <- add_argument(p, "--verbose",
                   help="verbose mode",
                   flag=T)

@@ -109,7 +109,7 @@ n     <- 0
 
 # prepare output file
 cat( file=argv$ffout, append=F,
-     "time;p;radius;num_min;thr;max_elev_diff;elev_gradient;min_std;transformation;boxcox_par;PGE;niso;a;b;c;d;acc;pod;pofa;ets;\n")
+     "time;p;radius;num_min;eve_thr;thr;max_elev_diff;elev_gradient;min_std;transformation;boxcox_par;PGE;niso;a;b;c;d;acc;pod;pofa;ets;\n")
 
 # loop over all the n_tseq times
 for (t in 1:n_tseq) { # MAIN LOOP @@BEGIN@@ (jump to @@END@@)
@@ -270,7 +270,7 @@ for (t in 1:n_tseq) { # MAIN LOOP @@BEGIN@@ (jump to @@END@@)
                 obsToCheck_val_i,
                 as.numeric(argv$radius), # radius 
                 as.integer(argv$num_min), # num_min 
-#                as.numeric(argv$thr), # threshold
+                as.numeric(argv$eve_thr), # event threshold
                 as.numeric(thr), # threshold
                 as.numeric(argv$max_elev_diff), # max_elev_diff
                 as.numeric(argv$elev_gradient), # elev_gradient
@@ -380,6 +380,7 @@ for (t in 1:n_tseq) { # MAIN LOOP @@BEGIN@@ (jump to @@END@@)
                  p,";",
                  round(argv$radius,1),";",
                  round(argv$num_min),";",
+                 round(argv$eve_thr,1),";",
                  round(thr,1),";",
                  round(argv$max_elev_diff),";",
                  round(argv$elev_gradient),";",
